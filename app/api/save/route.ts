@@ -1,5 +1,6 @@
 import { kv } from '@vercel/kv';
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import rawDataFromJson from '@/data/bento-data.json';
 import { mergeWithFallbackData } from '@/utils/raw-data';
 
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
         };
 
         await kv.set('bento_data', updatedData);
+        revalidatePath('/');
 
         return NextResponse.json({ success: true });
     } catch (error) {

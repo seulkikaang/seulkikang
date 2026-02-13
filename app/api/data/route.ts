@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import rawData from '@/data/bento-data.json';
 import { mergeWithFallbackData } from '@/utils/raw-data';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         const data = await kv.get('bento_data');

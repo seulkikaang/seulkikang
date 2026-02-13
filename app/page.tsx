@@ -5,6 +5,8 @@ import { mergeWithFallbackData } from '@/utils/raw-data';
 import { kv } from '@vercel/kv';
 import rawDataFromJson from '@/data/bento-data.json';
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   let rawData: any = rawDataFromJson;
   try {
