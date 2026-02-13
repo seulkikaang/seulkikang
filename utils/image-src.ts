@@ -1,3 +1,13 @@
+function mapCreatorspaceMirror(src: string): string | null {
+  const prefix = 'https://storage.googleapis.com/creatorspace-public/';
+  if (!src.startsWith(prefix)) return null;
+
+  const rawPath = src.slice(prefix.length).split('?')[0].split('#')[0];
+  const decodedPath = decodeURIComponent(rawPath);
+  const mirroredFilename = decodedPath.replaceAll('/', '_');
+  return `/images/Seulki Kang_files/${mirroredFilename}`;
+}
+
 export function resolveImageSrc(src?: string): string {
   if (!src) return '';
 
@@ -10,6 +20,8 @@ export function resolveImageSrc(src?: string): string {
     trimmed.startsWith('data:') ||
     trimmed.startsWith('blob:')
   ) {
+    const mirrored = mapCreatorspaceMirror(trimmed);
+    if (mirrored) return mirrored;
     return trimmed;
   }
 
