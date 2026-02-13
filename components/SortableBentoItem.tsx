@@ -3,14 +3,15 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { BentoItem as BentoItemData } from '@/types/bento';
 import BentoItem from './BentoItem';
-import { GripVertical, Settings2 } from 'lucide-react';
+import { GripVertical, Settings2, Trash2 } from 'lucide-react';
 
 interface SortableBentoItemProps {
     item: BentoItemData;
     onEdit: (item: BentoItemData) => void;
+    onDelete: (id: string) => void;
 }
 
-const SortableBentoItem: React.FC<SortableBentoItemProps> = ({ item, onEdit }) => {
+const SortableBentoItem: React.FC<SortableBentoItemProps> = ({ item, onEdit, onDelete }) => {
     const {
         attributes,
         listeners,
@@ -38,6 +39,12 @@ const SortableBentoItem: React.FC<SortableBentoItemProps> = ({ item, onEdit }) =
                     className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-md ring-1 ring-black/5 hover:bg-gray-50 bg-opacity-90"
                 >
                     <Settings2 className="h-4 w-4 text-gray-600" />
+                </button>
+                <button
+                    onClick={() => onDelete(item.id)}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-md ring-1 ring-black/5 hover:bg-red-50 bg-opacity-90 text-red-500"
+                >
+                    <Trash2 className="h-4 w-4" />
                 </button>
                 <button
                     {...attributes}

@@ -77,6 +77,31 @@ export default function AdminPage() {
         }
     };
 
+    const handleAddItem = () => {
+        if (!profile) return;
+        const newItem: BentoItemData = {
+            id: Math.random().toString(36).substring(7),
+            title: 'New Item',
+            href: 'https://',
+            type: 'link',
+            style: {
+                mobile: '2x2',
+                desktop: '2x2'
+            },
+            position: {
+                mobile: { x: 0, y: 0 },
+                desktop: { x: 0, y: 0 }
+            }
+        };
+        setProfile({ ...profile, items: [newItem, ...profile.items] });
+    };
+
+    const handleDelete = (id: string) => {
+        if (!profile) return;
+        if (!confirm('Are you sure you want to delete this item?')) return;
+        setProfile({ ...profile, items: profile.items.filter(i => i.id !== id) });
+    };
+
     const handleSave = async () => {
         if (!profile) return;
         setIsSaving(true);
@@ -102,6 +127,13 @@ export default function AdminPage() {
                 <div className="mx-auto flex max-w-[428px] items-center justify-between px-6 py-4">
                     <h1 className="text-lg font-bold">Bento Admin</h1>
                     <div className="flex space-x-2">
+                        <button
+                            onClick={handleAddItem}
+                            className="flex items-center space-x-1 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium hover:bg-gray-200"
+                        >
+                            <Plus className="h-3 w-3" />
+                            <span>Add</span>
+                        </button>
                         <a
                             href="/"
                             className="flex items-center rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium hover:bg-gray-200"
@@ -143,6 +175,7 @@ export default function AdminPage() {
                                             key={item.id}
                                             item={item}
                                             onEdit={(it) => setIsEditing(it)}
+                                            onDelete={handleDelete}
                                         />
                                     ))}
                                 </div>
