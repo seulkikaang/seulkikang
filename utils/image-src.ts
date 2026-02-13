@@ -3,6 +3,15 @@ function mapCreatorspaceMirror(src: string): string | null {
   if (!src.startsWith(prefix)) return null;
 
   const rawPath = src.slice(prefix.length).split('?')[0].split('#')[0];
+  // Keep favicon/touchicon on remote URL unless local files are guaranteed.
+  // We only mirror image-heavy paths that exist in the provided asset dump.
+  if (
+    !rawPath.startsWith('users/') &&
+    !rawPath.startsWith('sites/ogimages/')
+  ) {
+    return null;
+  }
+
   const decodedPath = decodeURIComponent(rawPath);
   const mirroredFilename = decodedPath.replaceAll('/', '_');
   return `/images/Seulki Kang_files/${mirroredFilename}`;
