@@ -45,7 +45,7 @@ const BentoItem: React.FC<BentoItemProps> = ({ item }) => {
             {item.image && (
                 <div className="h-full w-1/4 shrink-0 overflow-hidden rounded-xl bg-gray-50">
                     <img
-                        src={item.image.startsWith('http') ? item.image : item.image.startsWith('/uploads') ? item.image : `/images/${item.image.split('/').pop()}`}
+                        src={item.image.startsWith('http') || item.image.startsWith('https') ? item.image : item.image.startsWith('/uploads') ? item.image : `/images/${item.image.split('/').pop()}`}
                         alt={item.title}
                         className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
                     />
