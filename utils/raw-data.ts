@@ -26,7 +26,7 @@ export function mergeWithFallbackData(raw: unknown, fallbackRaw: unknown) {
     profile: {
       ...fallbackProfile,
       ...dataProfile,
-      bio: dataProfile.bio ?? fallbackProfile.bio,
+      bio: fallbackProfile.bio ?? dataProfile.bio,
       bento: {
         ...(fallbackProfile.bento ?? {}),
         ...(dataProfile.bento ?? {}),
