@@ -1,16 +1,15 @@
 import ProfileHeader from '@/components/ProfileHeader';
 import BentoGrid from '@/components/BentoGrid';
 import { parseBentoData } from '@/utils/data-parser';
+import { mergeWithFallbackData } from '@/utils/raw-data';
 import { kv } from '@vercel/kv';
 import rawDataFromJson from '@/data/bento-data.json';
 
 export default async function Home() {
-  let rawData: any;
+  let rawData: any = rawDataFromJson;
   try {
-    rawData = await kv.get('bento_data');
-    if (!rawData) {
-      rawData = rawDataFromJson;
-    }
+    const kvData = await kv.get('bento_data');
+    rawData = mergeWithFallbackData(kvData, rawDataFromJson);
   } catch (error) {
     console.error('KV Fetch error:', error);
     rawData = rawDataFromJson;

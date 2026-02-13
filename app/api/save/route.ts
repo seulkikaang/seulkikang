@@ -1,5 +1,7 @@
 import { kv } from '@vercel/kv';
 import { NextResponse } from 'next/server';
+import rawDataFromJson from '@/data/bento-data.json';
+import { mergeWithFallbackData } from '@/utils/raw-data';
 
 export async function POST(request: Request) {
     try {
@@ -11,14 +13,15 @@ export async function POST(request: Request) {
         // or expect the full state from the admin.
 
         // Let's get the current data to preserve other fields (like fallback)
-        const currentData: any = await kv.get('bento_data');
+        const currentData = await kv.get('bento_data');
+        const baseData = mergeWithFallbackData(currentData, rawDataFromJson);
 
         const updatedData = {
-            ...(currentData || {}),
+            ...baseData,
             profile: {
-                ...(currentData?.profile || {}),
+                ...(baseData?.profile || {}),
                 bento: {
-                    ...(currentData?.profile?.bento || {}),
+                    ...(baseData?.profile?.bento || {}),
                     items: data.items.map((item: any) => ({
                         data: {
                             ...(item.raw_data || {}),
