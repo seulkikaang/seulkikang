@@ -31,7 +31,16 @@ export default function AdminPage() {
     const [isUploading, setIsUploading] = useState(false);
 
     useEffect(() => {
-        setProfile(parseBentoData(rawData));
+        const fetchData = async () => {
+            try {
+                const res = await fetch('/api/data');
+                const data = await res.json();
+                setProfile(parseBentoData(data));
+            } catch (err) {
+                console.error('Failed to fetch data:', err);
+            }
+        };
+        fetchData();
     }, []);
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,9 +59,12 @@ export default function AdminPage() {
             const data = await resp.json();
             if (data.success) {
                 setIsEditing({ ...isEditing, image: data.url });
+            } else {
+                alert(`Upload failed: ${data.error || 'Unknown error'}`);
             }
         } catch (err) {
-            alert('Upload failed');
+            console.error(err);
+            alert('Upload failed: Network error or server crashed');
         } finally {
             setIsUploading(false);
         }

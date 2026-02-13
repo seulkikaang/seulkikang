@@ -1,9 +1,18 @@
 import ProfileHeader from '@/components/ProfileHeader';
 import BentoGrid from '@/components/BentoGrid';
 import { parseBentoData } from '@/utils/data-parser';
-import rawData from '@/data/bento-data.json';
 
-export default function Home() {
+async function getData() {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const res = await fetch(`${baseUrl}/api/data`, { cache: 'no-store' });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export default async function Home() {
+  const rawData = await getData();
+  if (!rawData) return <div>Failed to load data</div>;
+
   const profileData = parseBentoData(rawData);
 
   return (
