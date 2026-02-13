@@ -1,17 +1,20 @@
 import ProfileHeader from '@/components/ProfileHeader';
 import BentoGrid from '@/components/BentoGrid';
 import { parseBentoData } from '@/utils/data-parser';
-
-async function getData() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-  const res = await fetch(`${baseUrl}/api/data`, { cache: 'no-store' });
-  if (!res.ok) return null;
-  return res.json();
-}
+import { kv } from '@vercel/kv';
+import rawDataFromJson from '@/data/bento-data.json';
 
 export default async function Home() {
-  const rawData = await getData();
-  if (!rawData) return <div>Failed to load data</div>;
+  let rawData: any;
+  try {
+    rawData = await kv.get('bento_data');
+    if (!rawData) {
+      rawData = rawDataFromJson;
+    }
+  } catch (error) {
+    console.error('KV Fetch error:', error);
+    rawData = rawDataFromJson;
+  }
 
   const profileData = parseBentoData(rawData);
 
