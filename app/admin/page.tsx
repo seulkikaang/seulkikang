@@ -30,6 +30,7 @@ export default function AdminPage() {
     const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [isUploadingIcon, setIsUploadingIcon] = useState(false);
     const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
 
     useEffect(() => {
@@ -101,6 +102,34 @@ export default function AdminPage() {
             alert('Upload failed: Network error or server crashed');
         } finally {
             setIsUploadingFavicon(false);
+            e.target.value = '';
+        }
+    };
+
+    const handleIconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !isEditing) return;
+
+        setIsUploadingIcon(true);
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const resp = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await resp.json();
+            if (data.success) {
+                setIsEditing({ ...isEditing, icon: data.url });
+            } else {
+                alert(`Upload failed: ${data.error || 'Unknown error'}`);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Upload failed: Network error or server crashed');
+        } finally {
+            setIsUploadingIcon(false);
             e.target.value = '';
         }
     };
@@ -345,6 +374,26 @@ export default function AdminPage() {
                                         {isUploading ? <Loader2 className="h-4 w-4 animate-spin text-gray-400" /> : <Upload className="h-4 w-4 text-gray-400" />}
                                         <span className="text-sm text-gray-600">Upload</span>
                                         <input type="file" className="hidden" onChange={handleImageUpload} accept="image/*" disabled={isUploading} />
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Icon (Favicon)</label>
+                                <input
+                                    type="text"
+                                    value={isEditing.icon || ''}
+                                    onChange={(e) => setIsEditing({ ...isEditing, icon: e.target.value })}
+                                    placeholder="https://... or /images/..."
+                                    className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-black focus:ring-black sm:text-sm border p-2"
+                                />
+                                <div className="mt-2 flex items-center gap-3">
+                                    {isEditing.icon && (
+                                        <img src={isEditing.icon} className="h-8 w-8 rounded object-cover" />
+                                    )}
+                                    <label className="flex cursor-pointer items-center space-x-2 rounded-lg border border-dashed border-gray-300 px-3 py-1.5 hover:bg-gray-50">
+                                        {isUploadingIcon ? <Loader2 className="h-4 w-4 animate-spin text-gray-400" /> : <Upload className="h-4 w-4 text-gray-400" />}
+                                        <span className="text-xs text-gray-600">Upload Icon</span>
+                                        <input type="file" className="hidden" onChange={handleIconUpload} accept="image/*" disabled={isUploadingIcon} />
                                     </label>
                                 </div>
                             </div>

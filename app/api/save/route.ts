@@ -49,6 +49,7 @@ export async function POST(request: Request) {
                                 ...(item.raw_data?.overrides || {}),
                                 title: item.title,
                                 ogImage: item.image,
+                                icon: item.icon,
                             }
                         },
                         position: item.position

@@ -27,7 +27,7 @@ export function parseBentoData(raw: any): ProfileData {
             title: title || data.title || "Untitled",
             host: data.host,
             image: data.overrides?.ogImage || metadata?.imageUrl,
-            icon: metadata?.faviconUrl || metadata?.touchIconUrl,
+            icon: data.overrides?.icon || metadata?.faviconUrl || metadata?.touchIconUrl,
             style: {
                 desktop: data?.style?.desktop || '2x2',
                 mobile: data?.style?.mobile || '2x2',
