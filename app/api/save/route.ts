@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import rawDataFromJson from '@/data/bento-data.json';
 import { mergeWithFallbackData } from '@/utils/raw-data';
+import { getSiteSettings } from '@/utils/site-settings';
 
 export async function POST(request: Request) {
     try {
@@ -16,6 +17,21 @@ export async function POST(request: Request) {
         // Let's get the current data to preserve other fields (like fallback)
         const currentData = await kv.get('bento_data');
         const baseData = mergeWithFallbackData(currentData, rawDataFromJson);
+        const currentSite = getSiteSettings(baseData);
+        const requestedSite = data.site ?? {};
+
+        const nextSite = {
+            title: typeof requestedSite.title === 'string' && requestedSite.title.trim()
+                ? requestedSite.title.trim()
+                : currentSite.title,
+            faviconType: requestedSite.faviconType === 'image' ? 'image' : 'emoji',
+            faviconEmoji: typeof requestedSite.faviconEmoji === 'string' && requestedSite.faviconEmoji.trim()
+                ? requestedSite.faviconEmoji.trim()
+                : currentSite.faviconEmoji,
+            faviconImage: typeof requestedSite.faviconImage === 'string'
+                ? requestedSite.faviconImage.trim()
+                : currentSite.faviconImage,
+        };
 
         const updatedData = {
             ...baseData,
@@ -38,11 +54,13 @@ export async function POST(request: Request) {
                         position: item.position
                     }))
                 }
-            }
+            },
+            site: nextSite,
         };
 
         await kv.set('bento_data', updatedData);
         revalidatePath('/');
+        revalidatePath('/admin');
 
         return NextResponse.json({ success: true });
     } catch (error) {

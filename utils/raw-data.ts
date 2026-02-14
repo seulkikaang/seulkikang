@@ -41,5 +41,9 @@ export function mergeWithFallbackData(raw: unknown, fallbackRaw: unknown) {
       ...(fallback.fallback ?? {}),
       ...(data.fallback ?? {}),
     },
+    site: {
+      ...(fallback.site ?? {}),
+      ...(data.site ?? {}),
+    },
   };
 }
