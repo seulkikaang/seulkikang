@@ -1,19 +1,23 @@
+function hashString(input: string): string {
+  let hash = 5381;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = ((hash << 5) + hash) + input.charCodeAt(i);
+    hash &= 0xffffffff;
+  }
+  return (hash >>> 0).toString(16);
+}
+
 function mapCreatorspaceMirror(src: string): string | null {
   const prefix = 'https://storage.googleapis.com/creatorspace-public/';
   if (!src.startsWith(prefix)) return null;
 
   const rawPath = src.slice(prefix.length).split('?')[0].split('#')[0];
-  // Keep favicon/touchicon on remote URL unless local files are guaranteed.
-  // We only mirror image-heavy paths that exist in the provided asset dump.
-  if (
-    !rawPath.startsWith('users/') &&
-    !rawPath.startsWith('sites/ogimages/')
-  ) {
-    return null;
-  }
-
   const decodedPath = decodeURIComponent(rawPath);
   const mirroredFilename = decodedPath.replaceAll('/', '_');
+  if (mirroredFilename.length > 240) {
+    const ext = mirroredFilename.split('.').pop() || 'png';
+    return `/images/Seulki Kang_files/hashed_${hashString(decodedPath)}.${ext}`;
+  }
   return `/images/Seulki Kang_files/${mirroredFilename}`;
 }
 
