@@ -29,7 +29,7 @@ export default async function Home() {
           image={profileData.image}
           bio={profileData.bio}
         />
-        <div className="mt-1 text-center text-xs text-gray-400">
+        <div className="mt-1 text-center text-xs text-white">
           Views {viewCount.toLocaleString()}
         </div>
         <div className="mt-8">
