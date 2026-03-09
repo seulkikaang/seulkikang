@@ -3,22 +3,27 @@ import { resolveImageSrc } from '@/utils/image-src';
 
 interface ProfileHeaderProps {
     name: string;
+    handle: string;
     image: string;
     bio: string[];
 }
 
-const ProfileHeader: React.FC<ProfileHeaderProps> = ({ name, image, bio }) => {
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({ name, handle, image, bio }) => {
     return (
-        <div className="flex flex-col items-center pt-12 pb-8 text-center">
-            <div className="relative h-32 w-32 overflow-hidden rounded-full ring-4 ring-gray-50 md:h-40 md:w-40">
+        <div className="flex flex-col items-center pb-4 text-center">
+            <p className="type-display text-xl font-semibold italic tracking-[0.08em] text-[color:var(--accent)]">
+                {handle ? `@${handle}` : "curated links"}
+            </p>
+
+            <div className="mt-4 relative h-32 w-32 overflow-hidden rounded-[2rem] border border-[color:var(--frame)] bg-[color:var(--paper-strong)] p-1 shadow-[0_18px_40px_-34px_rgba(53,41,31,0.75)] md:h-36 md:w-36">
                 <img src={resolveImageSrc(image)} alt={name} className="h-full w-full object-cover" />
             </div>
 
-            <h1 className="mt-8 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
+            <h1 className="type-display mt-5 max-w-[16rem] text-[3.4rem] leading-[0.86] font-semibold tracking-[-0.04em] text-[color:var(--foreground)] md:text-[3.8rem]">
                 {name}
             </h1>
 
-            <div className="mt-4 max-w-sm space-y-1.5 text-base text-gray-500 md:text-lg">
+            <div className="mt-3 max-w-sm space-y-1.5 px-4 text-[15px] leading-[1.55] text-[color:var(--text-muted)] md:text-base">
                 {bio.map((paragraph, i) => (
                     <p key={i}>{paragraph}</p>
                 ))}

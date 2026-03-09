@@ -8,7 +8,7 @@ interface BentoGridProps {
 
 const BentoGrid: React.FC<BentoGridProps> = ({ items }) => {
     return (
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-4 gap-4">
             {items.map((item) => (
                 <BentoItem key={item.id} item={item} />
             ))}

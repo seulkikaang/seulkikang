@@ -22,17 +22,19 @@ export default async function Home() {
   const profileData = parseBentoData(rawData);
 
   return (
-    <main className="min-h-screen bg-[#FDFDFD] flex justify-center">
-      <div className="w-full max-w-[428px] px-6 pb-20">
+    <main className="site-shell flex min-h-screen justify-center px-4 py-5 sm:px-6 sm:py-8">
+      <div className="paper-panel w-full max-w-[428px] rounded-[34px] border border-[color:var(--frame)] px-5 pb-8 pt-6 sm:px-6">
         <ProfileHeader
           name={profileData.name}
+          handle={profileData.handle}
           image={profileData.image}
           bio={profileData.bio}
         />
-        <div className="mt-1 text-center text-xs text-white">
-          Views {viewCount.toLocaleString()}
+        <div className="dotted-rule mt-2 flex items-center justify-between px-1 py-2 text-[10px] uppercase tracking-[0.32em] text-[color:var(--accent)]">
+          <span>Selected links</span>
+          <span>{viewCount.toLocaleString()} views</span>
         </div>
-        <div className="mt-8">
+        <div className="mt-4">
           <BentoGrid items={profileData.items} />
         </div>
       </div>
