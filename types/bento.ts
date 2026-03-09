@@ -5,9 +5,11 @@ export interface BentoItem {
   type: BentoItemType;
   href?: string;
   title: string;
+  category?: string;
   host?: string;
   image?: string;
   icon?: string;
+  raw_data?: unknown;
   style: {
     desktop: string; // e.g. "2x2", "2x4", "1x4"
     mobile: string;

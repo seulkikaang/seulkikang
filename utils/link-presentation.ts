@@ -1,12 +1,38 @@
 import { BentoItem } from '@/types/bento';
 
 export const DISPLAY_HANDLE = 'marketer.ai.seulki';
-export const DAILY_LINK_ID = '6lxZn7qTuxzOrWVq';
 export const SOCIAL_LINK_IDS = [
   'oCxaY1i7VlF9ZmBW',
   '6dLbjJ1sC79nZNng',
   'O7qvJhTRMm1z1jRB',
   'fPTrE1OHkRKzN5bK',
+] as const;
+
+export const FIXED_SOCIAL_LINKS = [
+  {
+    id: 'oCxaY1i7VlF9ZmBW',
+    href: 'https://linkedin.com/in/seulki-kang',
+    title: '링크드인',
+    iconSrc: '/social/linkedin.svg',
+  },
+  {
+    id: '6dLbjJ1sC79nZNng',
+    href: 'https://www.threads.net/@seulgi.kaang',
+    title: '스레드',
+    iconSrc: '/social/threads.svg',
+  },
+  {
+    id: 'O7qvJhTRMm1z1jRB',
+    href: 'https://www.instagram.com/seulgi.kaang/',
+    title: '인스타그램',
+    iconSrc: '/social/instagram.svg',
+  },
+  {
+    id: 'fPTrE1OHkRKzN5bK',
+    href: 'https://brunch.co.kr/@sukistory',
+    title: '브런치',
+    iconSrc: '/social/brunch.svg',
+  },
 ] as const;
 
 const SOCIAL_ICON_PATHS: Record<string, string> = {
@@ -36,6 +62,14 @@ export interface SocialLinkItem {
   iconSrc: string;
 }
 
+export const CATEGORY_OPTIONS = [
+  { value: 'education', label: '강의 & 챌린지 & 전자책' },
+  { value: 'community', label: '커뮤니티 참여' },
+  { value: 'channels', label: '채널 리스트' },
+  { value: 'stories', label: '기사 + 영상' },
+  { value: 'ai-tools', label: 'AI 툴 추천' },
+] as const;
+
 const GROUP_TITLES: Record<LinkGroupId, string> = {
   education: '강의 & 챌린지 & 전자책',
   community: '커뮤니티 참여',
@@ -53,6 +87,7 @@ const GROUP_ORDER: LinkGroupId[] = [
 ];
 
 const ITEM_GROUPS: Record<string, LinkGroupId> = {
+  '6lxZn7qTuxzOrWVq': 'community',
   qwyBoLLHJ1ByLD8n: 'education',
   D6AvzG4NEInLxtlP: 'education',
   crHmxxmCv8FPTegZ: 'education',
@@ -75,25 +110,24 @@ const ITEM_GROUPS: Record<string, LinkGroupId> = {
   If8B6All2rnzM8CG: 'ai-tools',
 };
 
-export function getDailyLinkItem(items: BentoItem[]): BentoItem | undefined {
-  return items.find((item) => item.id === DAILY_LINK_ID);
+function isLinkGroupId(value: string): value is LinkGroupId {
+  return CATEGORY_OPTIONS.some((option) => option.value === value);
 }
 
-export function getSocialLinks(items: BentoItem[]): SocialLinkItem[] {
-  return SOCIAL_LINK_IDS.map<SocialLinkItem | null>((id) => {
-    const item = items.find((entry) => entry.id === id);
-    if (!item) return null;
+export function getSocialLinks(): SocialLinkItem[] {
+  return FIXED_SOCIAL_LINKS.map((item) => ({
+    ...item,
+  }));
+}
 
-    return {
-      id: item.id,
-      href: item.href,
-      title: getItemDisplayTitle(item),
-      iconSrc: SOCIAL_ICON_PATHS[item.id] ?? '/social/link.svg',
-    };
-  }).filter((item): item is SocialLinkItem => Boolean(item));
+export function getFixedSocialLink(id: string): SocialLinkItem | undefined {
+  return FIXED_SOCIAL_LINKS.find((item) => item.id === id);
 }
 
 export function getLinkGroupId(item: BentoItem): LinkGroupId {
+  if (typeof item.category === 'string' && isLinkGroupId(item.category)) {
+    return item.category;
+  }
   return ITEM_GROUPS[item.id] ?? 'channels';
 }
 
@@ -120,7 +154,7 @@ export function groupBentoItems(items: BentoItem[]): LinkGroupSection[] {
   }
 
   for (const item of items) {
-    if (item.id === DAILY_LINK_ID || SOCIAL_LINK_IDS.includes(item.id as typeof SOCIAL_LINK_IDS[number])) continue;
+    if (SOCIAL_LINK_IDS.includes(item.id as typeof SOCIAL_LINK_IDS[number])) continue;
     grouped.get(getLinkGroupId(item))?.push(item);
   }
 

@@ -3,6 +3,7 @@ import rawData from '@/data/bento-data.json';
 import { mergeWithFallbackData } from '@/utils/raw-data';
 import { parseBentoData } from '@/utils/data-parser';
 import { trackLinkView } from '@/utils/view-counter';
+import { getFixedSocialLink } from '@/utils/link-presentation';
 import { kv } from '@vercel/kv';
 
 export const dynamic = 'force-dynamic';
@@ -24,11 +25,13 @@ export async function GET(
 
   const profile = parseBentoData(merged);
   const item = profile.items.find((entry) => entry.id === id);
+  const fixedSocialLink = getFixedSocialLink(id);
+  const href = item?.href ?? fixedSocialLink?.href;
 
-  if (!item?.href) {
+  if (!href) {
     return NextResponse.redirect(fallbackUrl);
   }
 
-  await trackLinkView(item.id);
-  return NextResponse.redirect(item.href);
+  await trackLinkView(id);
+  return NextResponse.redirect(href);
 }

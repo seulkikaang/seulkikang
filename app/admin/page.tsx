@@ -22,18 +22,19 @@ import SortableBentoItem from '@/components/SortableBentoItem';
 import ProfileHeader from '@/components/ProfileHeader';
 import { parseBentoData } from '@/utils/data-parser';
 import { getFaviconUrl, getSiteSettings, SiteSettings } from '@/utils/site-settings';
-import { DISPLAY_HANDLE } from '@/utils/link-presentation';
+import { CATEGORY_OPTIONS, DISPLAY_HANDLE } from '@/utils/link-presentation';
 import { Plus, Upload, Loader2 } from 'lucide-react';
 
 interface LinkViewsResponse {
     dates: string[];
-    rows: Array<{
+    dailyVisitors: number[];
+    links: Array<{
         itemId: string;
         title: string;
         href: string;
         group: string;
-        counts: number[];
-        total: number;
+        todayClicks: number;
+        totalClicks: number;
     }>;
 }
 
@@ -191,6 +192,7 @@ export default function AdminPage() {
             title: 'New Item',
             href: 'https://',
             type: 'link',
+            category: 'education',
             style: {
                 mobile: '2x2',
                 desktop: '2x2'
@@ -339,27 +341,33 @@ export default function AdminPage() {
                     <section className="mt-8 rounded-2xl border border-gray-200 bg-white p-5">
                         <div className="flex items-center justify-between gap-3">
                             <div>
-                                <h2 className="text-sm font-semibold text-gray-900">최근 7일 링크 열람</h2>
-                                <p className="mt-1 text-xs text-gray-500">날짜별로 어떤 링크가 열렸는지 확인할 수 있습니다.</p>
+                                <h2 className="text-sm font-semibold text-gray-900">방문 & 클릭 분석</h2>
+                                <p className="mt-1 text-xs text-gray-500">최근 7일 일별 방문자와 링크별 클릭 수를 확인할 수 있습니다.</p>
                             </div>
                             {isLoadingViews && <span className="text-xs text-gray-400">Loading...</span>}
                         </div>
 
+                        <div className="mt-4 grid grid-cols-7 gap-2">
+                            {linkViews?.dates.map((date, index) => (
+                                <div key={date} className="rounded-xl border border-gray-200 bg-gray-50 px-2 py-3 text-center">
+                                    <p className="text-[11px] uppercase tracking-[0.14em] text-gray-400">{date.slice(5)}</p>
+                                    <p className="mt-1 text-lg font-semibold text-gray-900">{linkViews?.dailyVisitors[index] ?? 0}</p>
+                                    <p className="text-[11px] text-gray-500">visitors</p>
+                                </div>
+                            ))}
+                        </div>
+
                         <div className="mt-4 overflow-x-auto">
-                            <table className="min-w-[760px] text-left text-xs">
+                            <table className="min-w-[720px] text-left text-xs">
                                 <thead>
                                     <tr className="border-b border-gray-200 text-[11px] uppercase tracking-[0.18em] text-gray-400">
                                         <th className="pb-3 pr-4 font-medium">Link</th>
-                                        {linkViews?.dates.map((date) => (
-                                            <th key={date} className="pb-3 px-2 text-center font-medium">
-                                                {date.slice(5)}
-                                            </th>
-                                        ))}
-                                        <th className="pb-3 pl-3 text-center font-medium">Total</th>
+                                        <th className="pb-3 px-2 text-center font-medium">Today</th>
+                                        <th className="pb-3 pl-3 text-center font-medium">7d Clicks</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {linkViews?.rows.map((row) => (
+                                    {linkViews?.links.map((row) => (
                                         <tr key={row.itemId} className="border-b border-gray-100 align-top last:border-b-0">
                                             <td className="py-3 pr-4">
                                                 <div className="min-w-[220px]">
@@ -377,21 +385,19 @@ export default function AdminPage() {
                                                     )}
                                                 </div>
                                             </td>
-                                            {row.counts.map((count, index) => (
-                                                <td key={`${row.itemId}-${linkViews.dates[index]}`} className="px-2 py-3 text-center text-sm text-gray-700">
-                                                    {count}
-                                                </td>
-                                            ))}
+                                            <td className="px-2 py-3 text-center text-sm text-gray-700">
+                                                {row.todayClicks}
+                                            </td>
                                             <td className="pl-3 py-3 text-center text-sm font-semibold text-gray-900">
-                                                {row.total}
+                                                {row.totalClicks}
                                             </td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
 
-                            {!isLoadingViews && linkViews?.rows.length === 0 && (
-                                <p className="py-4 text-sm text-gray-500">표시할 링크 열람 데이터가 없습니다.</p>
+                            {!isLoadingViews && linkViews?.links.length === 0 && (
+                                <p className="py-4 text-sm text-gray-500">표시할 분석 데이터가 없습니다.</p>
                             )}
                         </div>
                     </section>
@@ -456,6 +462,20 @@ export default function AdminPage() {
                                     <option value="1x4">1x4 (Wide Small)</option>
                                     <option value="2x2">2x2 (Square)</option>
                                     <option value="2x4">2x4 (Large Rectangle)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Category</label>
+                                <select
+                                    value={isEditing.category || 'education'}
+                                    onChange={(e) => setIsEditing({ ...isEditing, category: e.target.value })}
+                                    className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-black focus:ring-black sm:text-sm border p-2"
+                                >
+                                    {CATEGORY_OPTIONS.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                             <div>

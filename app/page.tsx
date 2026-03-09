@@ -25,7 +25,7 @@ export default async function Home() {
   }
 
   const profileData = parseBentoData(rawData);
-  const socialLinks = getSocialLinks(profileData.items);
+  const socialLinks = getSocialLinks();
   const sections = groupBentoItems(profileData.items);
 
   return (

@@ -48,6 +48,7 @@ export async function POST(request: Request) {
                             overrides: {
                                 ...(item.raw_data?.overrides || {}),
                                 title: item.title,
+                                category: item.category,
                                 ogImage: item.image,
                                 icon: item.icon,
                             }

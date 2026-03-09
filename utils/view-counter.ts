@@ -27,17 +27,17 @@ export async function trackHomeView(): Promise<number> {
 
     const dayKey = getDayKey();
     const uniqueKey = `views:home:unique:${dayKey}`;
-    const totalKey = 'views:home:total';
+    const dailyKey = `views:home:daily:${dayKey}`;
     const visitorId = makeVisitorId(ip, userAgent, dayKey);
 
     const added = await kv.sadd(uniqueKey, visitorId);
     await kv.expire(uniqueKey, 60 * 60 * 24 * 8);
 
     if (added === 1) {
-      await kv.incr(totalKey);
+      await kv.incr(dailyKey);
     }
 
-    const total = await kv.get<number>(totalKey);
+    const total = await kv.get<number>(dailyKey);
     return typeof total === 'number' ? total : 0;
   } catch {
     return 0;
@@ -75,6 +75,29 @@ export interface DailyLinkViewsRow {
 export interface DailyLinkViewsSnapshot {
   dates: string[];
   rows: DailyLinkViewsRow[];
+}
+
+export interface DailyHomeViewsSnapshot {
+  dates: string[];
+  counts: number[];
+}
+
+export async function getDailyHomeViews(days = 7): Promise<DailyHomeViewsSnapshot> {
+  const dates = Array.from({ length: days }, (_, index) => getDayKey(index - (days - 1)));
+
+  try {
+    const counts = await Promise.all(dates.map(async (date) => {
+      const value = await kv.get<number>(`views:home:daily:${date}`);
+      return typeof value === 'number' ? value : 0;
+    }));
+
+    return { dates, counts };
+  } catch {
+    return {
+      dates,
+      counts: dates.map(() => 0),
+    };
+  }
 }
 
 export async function getDailyLinkViews(itemIds: string[], days = 7): Promise<DailyLinkViewsSnapshot> {
