@@ -231,6 +231,7 @@ export default function AdminPage() {
                 <div className="w-full max-w-[428px] px-6">
                     <ProfileHeader
                         name={profile.name}
+                        handle={profile.handle}
                         image={profile.image}
                         bio={profile.bio}
                     />
