@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
     DndContext,
     closestCenter,
@@ -14,7 +15,6 @@ import {
     arrayMove,
     SortableContext,
     sortableKeyboardCoordinates,
-    verticalListSortingStrategy,
     rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { BentoItem as BentoItemData, ProfileData } from '@/types/bento';
@@ -22,22 +22,53 @@ import SortableBentoItem from '@/components/SortableBentoItem';
 import ProfileHeader from '@/components/ProfileHeader';
 import { parseBentoData } from '@/utils/data-parser';
 import { getFaviconUrl, getSiteSettings, SiteSettings } from '@/utils/site-settings';
-import { Save, Plus, Upload, Loader2 } from 'lucide-react';
+import { DISPLAY_HANDLE } from '@/utils/link-presentation';
+import { Plus, Upload, Loader2 } from 'lucide-react';
+
+interface LinkViewsResponse {
+    dates: string[];
+    rows: Array<{
+        itemId: string;
+        title: string;
+        href: string;
+        group: string;
+        counts: number[];
+        total: number;
+    }>;
+}
 
 export default function AdminPage() {
     const [profile, setProfile] = useState<ProfileData | null>(null);
     const [isEditing, setIsEditing] = useState<BentoItemData | null>(null);
     const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
+    const [linkViews, setLinkViews] = useState<LinkViewsResponse | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [isUploadingIcon, setIsUploadingIcon] = useState(false);
     const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
+    const [isLoadingViews, setIsLoadingViews] = useState(true);
 
     useEffect(() => {
+        const fetchLinkViews = async () => {
+            setIsLoadingViews(true);
+            try {
+                const res = await fetch('/api/link-views');
+                const data = await res.json();
+                setLinkViews(data);
+            } catch (err) {
+                console.error('Failed to fetch link views:', err);
+            } finally {
+                setIsLoadingViews(false);
+            }
+        };
+
         const fetchData = async () => {
             try {
-                const res = await fetch('/api/data');
-                const data = await res.json();
+                const [dataRes] = await Promise.all([
+                    fetch('/api/data'),
+                    fetchLinkViews(),
+                ]);
+                const data = await dataRes.json();
                 setProfile(parseBentoData(data));
                 setSiteSettings(getSiteSettings(data));
             } catch (err) {
@@ -187,7 +218,9 @@ export default function AdminPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ items: profile.items, site: siteSettings }),
             });
-            if (resp.ok) alert('Saved successfully!');
+            if (resp.ok) {
+                alert('Saved successfully!');
+            }
         } catch (err) {
             alert('Failed to save');
         } finally {
@@ -210,12 +243,12 @@ export default function AdminPage() {
                             <Plus className="h-3 w-3" />
                             <span>Add</span>
                         </button>
-                        <a
+                        <Link
                             href="/"
                             className="flex items-center rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium hover:bg-gray-200"
                         >
                             View
-                        </a>
+                        </Link>
                         <button
                             onClick={handleSave}
                             disabled={isSaving}
@@ -231,7 +264,7 @@ export default function AdminPage() {
                 <div className="w-full max-w-[428px] px-6">
                     <ProfileHeader
                         name={profile.name}
-                        handle={profile.handle}
+                        handle={DISPLAY_HANDLE}
                         image={profile.image}
                         bio={profile.bio}
                     />
@@ -300,6 +333,66 @@ export default function AdminPage() {
                             <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600">
                                 Preview favicon: <img src={getFaviconUrl(siteSettings)} className="ml-2 inline h-4 w-4 align-text-bottom" />
                             </div>
+                        </div>
+                    </section>
+
+                    <section className="mt-8 rounded-2xl border border-gray-200 bg-white p-5">
+                        <div className="flex items-center justify-between gap-3">
+                            <div>
+                                <h2 className="text-sm font-semibold text-gray-900">최근 7일 링크 열람</h2>
+                                <p className="mt-1 text-xs text-gray-500">날짜별로 어떤 링크가 열렸는지 확인할 수 있습니다.</p>
+                            </div>
+                            {isLoadingViews && <span className="text-xs text-gray-400">Loading...</span>}
+                        </div>
+
+                        <div className="mt-4 overflow-x-auto">
+                            <table className="min-w-[760px] text-left text-xs">
+                                <thead>
+                                    <tr className="border-b border-gray-200 text-[11px] uppercase tracking-[0.18em] text-gray-400">
+                                        <th className="pb-3 pr-4 font-medium">Link</th>
+                                        {linkViews?.dates.map((date) => (
+                                            <th key={date} className="pb-3 px-2 text-center font-medium">
+                                                {date.slice(5)}
+                                            </th>
+                                        ))}
+                                        <th className="pb-3 pl-3 text-center font-medium">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {linkViews?.rows.map((row) => (
+                                        <tr key={row.itemId} className="border-b border-gray-100 align-top last:border-b-0">
+                                            <td className="py-3 pr-4">
+                                                <div className="min-w-[220px]">
+                                                    <p className="font-medium text-gray-900">{row.title}</p>
+                                                    <p className="mt-1 text-[11px] text-gray-500">{row.group}</p>
+                                                    {row.href && (
+                                                        <a
+                                                            href={row.href}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="mt-1 inline-block text-[11px] text-blue-600 hover:underline"
+                                                        >
+                                                            Open link
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            {row.counts.map((count, index) => (
+                                                <td key={`${row.itemId}-${linkViews.dates[index]}`} className="px-2 py-3 text-center text-sm text-gray-700">
+                                                    {count}
+                                                </td>
+                                            ))}
+                                            <td className="pl-3 py-3 text-center text-sm font-semibold text-gray-900">
+                                                {row.total}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+
+                            {!isLoadingViews && linkViews?.rows.length === 0 && (
+                                <p className="py-4 text-sm text-gray-500">표시할 링크 열람 데이터가 없습니다.</p>
+                            )}
                         </div>
                     </section>
 

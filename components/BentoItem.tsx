@@ -26,10 +26,11 @@ function getHostLabel(href?: string, host?: string) {
 
 const BentoItem: React.FC<BentoItemProps> = ({ item }) => {
     const hostLabel = getHostLabel(item.href, item.host);
+    const linkHref = item.href ? `/out/${item.id}` : '#';
 
     return (
         <a
-            href={item.href}
+            href={linkHref}
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
@@ -54,7 +55,7 @@ const BentoItem: React.FC<BentoItemProps> = ({ item }) => {
                     )}
                 </div>
 
-                <h3 className="type-display line-clamp-2 text-[1.28rem] leading-[0.92] font-semibold text-[color:var(--foreground)] transition-colors group-hover:text-[color:var(--accent)] whitespace-normal break-words">
+                <h3 className="type-display line-clamp-2 text-[0.86rem] leading-[1.02] font-semibold text-[color:var(--foreground)] transition-colors group-hover:text-[color:var(--accent)] whitespace-normal break-words">
                     {item.title}
                 </h3>
             </div>
