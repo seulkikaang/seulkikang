@@ -15,7 +15,7 @@ import rawDataFromJson from '@/data/bento-data.json';
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  let rawData: any = rawDataFromJson;
+  let rawData: unknown = rawDataFromJson;
   const viewCount = await trackHomeView();
   try {
     const kvData = await kv.get('bento_data');

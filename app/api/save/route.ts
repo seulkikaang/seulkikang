@@ -4,17 +4,26 @@ import { revalidatePath } from 'next/cache';
 import rawDataFromJson from '@/data/bento-data.json';
 import { mergeWithFallbackData } from '@/utils/raw-data';
 import { getSiteSettings } from '@/utils/site-settings';
+import { BentoItem } from '@/types/bento';
+
+interface SaveRequestBody {
+    items?: BentoItem[];
+    site?: {
+        title?: string;
+        faviconType?: string;
+        faviconEmoji?: string;
+        faviconImage?: string;
+    };
+}
+
+function toRecord(value: unknown): Record<string, unknown> {
+    return value && typeof value === 'object' ? value as Record<string, unknown> : {};
+}
 
 export async function POST(request: Request) {
     try {
-        const data = await request.json();
+        const data = await request.json() as SaveRequestBody;
 
-        // We'll store the entire profile data structure in KV
-        // For simplicity, we assume 'data.items' is what we update
-        // In a real app, we'd fetch the current data first, but here we can just overwrite the items
-        // or expect the full state from the admin.
-
-        // Let's get the current data to preserve other fields (like fallback)
         const currentData = await kv.get('bento_data');
         const baseData = mergeWithFallbackData(currentData, rawDataFromJson);
         const currentSite = getSiteSettings(baseData);
@@ -39,23 +48,28 @@ export async function POST(request: Request) {
                 ...(baseData?.profile || {}),
                 bento: {
                     ...(baseData?.profile?.bento || {}),
-                    items: data.items.map((item: any) => ({
-                        data: {
-                            ...(item.raw_data || {}),
-                            id: item.id,
-                            href: item.href,
-                            category: item.category,
-                            style: item.style,
-                            overrides: {
-                                ...(item.raw_data?.overrides || {}),
-                                title: item.title,
+                    items: (data.items ?? []).map((item) => {
+                        const rawData = toRecord(item.raw_data);
+                        const rawOverrides = toRecord(rawData.overrides);
+
+                        return {
+                            data: {
+                                ...rawData,
+                                id: item.id,
+                                href: item.href,
                                 category: item.category,
-                                ogImage: item.image,
-                                icon: item.icon,
-                            }
-                        },
-                        position: item.position
-                    }))
+                                style: item.style,
+                                overrides: {
+                                    ...rawOverrides,
+                                    title: item.title,
+                                    category: item.category,
+                                    ogImage: item.image,
+                                    icon: item.icon,
+                                }
+                            },
+                            position: item.position
+                        };
+                    })
                 }
             },
             site: nextSite,

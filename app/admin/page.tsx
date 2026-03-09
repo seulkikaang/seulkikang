@@ -223,7 +223,7 @@ export default function AdminPage() {
             if (resp.ok) {
                 alert('Saved successfully!');
             }
-        } catch (err) {
+        } catch {
             alert('Failed to save');
         } finally {
             setIsSaving(false);
@@ -319,7 +319,7 @@ export default function AdminPage() {
                                     <label className="block text-sm font-medium text-gray-700">Favicon Image</label>
                                     <div className="mt-1 flex items-center gap-3">
                                         {siteSettings.faviconImage ? (
-                                            <img src={siteSettings.faviconImage} className="h-8 w-8 rounded object-cover" />
+                                            <img src={siteSettings.faviconImage} alt="" className="h-8 w-8 rounded object-cover" />
                                         ) : (
                                             <div className="h-8 w-8 rounded bg-gray-100" />
                                         )}
@@ -333,7 +333,7 @@ export default function AdminPage() {
                             )}
 
                             <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600">
-                                Preview favicon: <img src={getFaviconUrl(siteSettings)} className="ml-2 inline h-4 w-4 align-text-bottom" />
+                                Preview favicon: <img src={getFaviconUrl(siteSettings)} alt="" className="ml-2 inline h-4 w-4 align-text-bottom" />
                             </div>
                         </div>
                     </section>
@@ -482,7 +482,7 @@ export default function AdminPage() {
                                 <label className="block text-sm font-medium text-gray-700">Image</label>
                                 <div className="mt-1 flex items-center space-x-4">
                                     {isEditing.image && (
-                                        <img src={isEditing.image} className="h-16 w-16 rounded-lg object-cover" />
+                                        <img src={isEditing.image} alt="" className="h-16 w-16 rounded-lg object-cover" />
                                     )}
                                     <label className="flex cursor-pointer items-center space-x-2 rounded-lg border border-dashed border-gray-300 px-4 py-2 hover:bg-gray-50">
                                         {isUploading ? <Loader2 className="h-4 w-4 animate-spin text-gray-400" /> : <Upload className="h-4 w-4 text-gray-400" />}
@@ -502,7 +502,7 @@ export default function AdminPage() {
                                 />
                                 <div className="mt-2 flex items-center gap-3">
                                     {isEditing.icon && (
-                                        <img src={isEditing.icon} className="h-8 w-8 rounded object-cover" />
+                                        <img src={isEditing.icon} alt="" className="h-8 w-8 rounded object-cover" />
                                     )}
                                     <label className="flex cursor-pointer items-center space-x-2 rounded-lg border border-dashed border-gray-300 px-3 py-1.5 hover:bg-gray-50">
                                         {isUploadingIcon ? <Loader2 className="h-4 w-4 animate-spin text-gray-400" /> : <Upload className="h-4 w-4 text-gray-400" />}

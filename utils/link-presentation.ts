@@ -35,17 +35,9 @@ export const FIXED_SOCIAL_LINKS = [
   },
 ] as const;
 
-const SOCIAL_ICON_PATHS: Record<string, string> = {
-  oCxaY1i7VlF9ZmBW: '/social/linkedin.svg',
-  '6dLbjJ1sC79nZNng': '/social/threads.svg',
-  O7qvJhTRMm1z1jRB: '/social/instagram.svg',
-  fPTrE1OHkRKzN5bK: '/social/brunch.svg',
-};
-
 export type LinkGroupId =
   | 'education'
   | 'community'
-  | 'channels'
   | 'stories'
   | 'ai-tools';
 
@@ -65,7 +57,6 @@ export interface SocialLinkItem {
 export const CATEGORY_OPTIONS = [
   { value: 'education', label: '강의 & 챌린지 & 전자책' },
   { value: 'community', label: '커뮤니티 참여' },
-  { value: 'channels', label: '채널 리스트' },
   { value: 'stories', label: '기사 + 영상' },
   { value: 'ai-tools', label: 'AI 툴 추천' },
 ] as const;
@@ -75,7 +66,6 @@ export const FEATURED_LINK_ID = '6lxZn7qTuxzOrWVq';
 const GROUP_TITLES: Record<LinkGroupId, string> = {
   education: '강의 & 챌린지 & 전자책',
   community: '커뮤니티 참여',
-  channels: '채널 리스트',
   stories: '기사 + 영상',
   'ai-tools': 'AI 툴 추천',
 };
@@ -83,7 +73,6 @@ const GROUP_TITLES: Record<LinkGroupId, string> = {
 const GROUP_ORDER: LinkGroupId[] = [
   'education',
   'community',
-  'channels',
   'stories',
   'ai-tools',
 ];
@@ -101,10 +90,6 @@ const ITEM_GROUPS: Record<string, LinkGroupId> = {
   SbdPDh8npRTt6lrG: 'community',
   aqb1qjZzRdPIe23d: 'community',
   XomURjdAVur84sBQ: 'community',
-  oCxaY1i7VlF9ZmBW: 'channels',
-  '6dLbjJ1sC79nZNng': 'channels',
-  fPTrE1OHkRKzN5bK: 'channels',
-  O7qvJhTRMm1z1jRB: 'channels',
   '3237glxyooooM2yV': 'stories',
   AOjIettJPPaAmw4f: 'stories',
   V31BrdI3cr28m4zu: 'stories',
@@ -134,7 +119,61 @@ export function getLinkGroupId(item: BentoItem): LinkGroupId {
   if (typeof item.category === 'string' && isLinkGroupId(item.category)) {
     return item.category;
   }
-  return ITEM_GROUPS[item.id] ?? 'channels';
+
+  const presetGroup = ITEM_GROUPS[item.id];
+  if (presetGroup) return presetGroup;
+
+  const title = getItemDisplayTitle(item).toLowerCase();
+  const href = (item.href ?? '').toLowerCase();
+
+  if (
+    href.includes('inf.run') ||
+    href.includes('classu.co.kr') ||
+    href.includes('fastcampus') ||
+    href.includes('calendar.app.google') ||
+    href.includes('latpeed.com') ||
+    href.includes('notion.site') ||
+    title.includes('강의') ||
+    title.includes('챌린지') ||
+    title.includes('전자책') ||
+    title.includes('가이드') ||
+    title.includes('컨설팅')
+  ) {
+    return 'education';
+  }
+
+  if (
+    href.includes('youtube.com') ||
+    href.includes('folin.co') ||
+    href.includes('ditoday.com') ||
+    title.includes('영상') ||
+    title.includes('기사')
+  ) {
+    return 'stories';
+  }
+
+  if (
+    href.includes('open.kakao.com') ||
+    href.includes('afterworkai.club') ||
+    href.includes('linkedin.com/groups') ||
+    href.includes('usergroups.tableau.com') ||
+    href.includes('naver.me') ||
+    title.includes('커뮤니티') ||
+    title.includes('밋업') ||
+    title.includes('그룹')
+  ) {
+    return 'community';
+  }
+
+  if (
+    href.includes('coupang.com') ||
+    title.includes('젠스파크') ||
+    title.includes('ai 툴')
+  ) {
+    return 'ai-tools';
+  }
+
+  return 'education';
 }
 
 export function getLinkGroupLabel(item: BentoItem): string {

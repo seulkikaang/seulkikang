@@ -1,55 +1,98 @@
 import { ProfileData, BentoItem, BentoItemType } from '@/types/bento';
 
-export function parseBentoData(raw: any): ProfileData {
-    const profile = raw?.profile ?? {};
-    const rawItems = Array.isArray(profile?.bento?.items) ? profile.bento.items : [];
-    const bioContent = Array.isArray(profile?.bio?.content) ? profile.bio.content : [];
-    const fallback = raw?.fallback ?? {};
+function toRecord(value: unknown): Record<string, unknown> {
+    return value && typeof value === 'object' ? value as Record<string, unknown> : {};
+}
 
-    const items: BentoItem[] = rawItems.map((item: any, index: number) => {
-        const data = item?.data ?? {};
-        const position = item?.position ?? {};
-        const href = typeof data?.href === 'string' ? data.href : undefined;
+export function parseBentoData(raw: unknown): ProfileData {
+    const root = toRecord(raw);
+    const profile = toRecord(root.profile);
+    const bento = toRecord(profile.bento);
+    const rawItems = Array.isArray(bento.items) ? bento.items : [];
+    const bio = toRecord(profile.bio);
+    const bioContent = Array.isArray(bio.content) ? bio.content : [];
+    const fallback = toRecord(root.fallback);
+
+    const items: BentoItem[] = rawItems.map((item, index: number) => {
+        const rawItem = toRecord(item);
+        const data = toRecord(rawItem.data);
+        const position = toRecord(rawItem.position);
+        const overrides = toRecord(data.overrides);
+        const href = typeof data.href === 'string' ? data.href : undefined;
         const metadataKey = href ? `/urlmetadata/${encodeURIComponent(href)}` : '';
-        const metadata = metadataKey ? fallback?.[metadataKey] : undefined;
+        const metadata = metadataKey ? toRecord(fallback[metadataKey]) : undefined;
+        const metadataImageUrl = metadata && typeof metadata.imageUrl === 'string' ? metadata.imageUrl : undefined;
+        const metadataFaviconUrl = metadata && typeof metadata.faviconUrl === 'string' ? metadata.faviconUrl : undefined;
+        const metadataTouchIconUrl = metadata && typeof metadata.touchIconUrl === 'string' ? metadata.touchIconUrl : undefined;
 
-        // Extract title from rich text doc if available
-        let title = typeof data.overrides?.title === 'string'
-            ? data.overrides.title
-            : data.overrides?.title?.content?.[0]?.content?.[0]?.text || "";
+        const overrideTitle = overrides.title;
+        const overrideTitleDoc = toRecord(overrideTitle);
+        const overrideTitleContent = Array.isArray(overrideTitleDoc.content) ? overrideTitleDoc.content : [];
+        const firstParagraph = toRecord(overrideTitleContent[0]);
+        const paragraphContent = Array.isArray(firstParagraph.content) ? firstParagraph.content : [];
+        const firstTextNode = toRecord(paragraphContent[0]);
+        const title = typeof overrideTitle === 'string'
+            ? overrideTitle
+            : typeof firstTextNode.text === 'string'
+                ? firstTextNode.text
+                : "";
 
-        const itemType: BentoItemType = (data.type as BentoItemType) || 'link';
+        const itemType: BentoItemType = typeof data.type === 'string' ? data.type as BentoItemType : 'link';
+        const desktopPosition = toRecord(position.desktop);
+        const mobilePosition = toRecord(position.mobile);
+        const style = toRecord(data.style);
 
         return {
-            id: data.id || `item-${index}`,
+            id: typeof data.id === 'string' ? data.id : `item-${index}`,
             type: itemType,
             href,
-            title: title || data.title || "Untitled",
-            category: typeof data.overrides?.category === 'string'
-                ? data.overrides.category
+            title: title || (typeof data.title === 'string' ? data.title : "Untitled"),
+            category: typeof overrides.category === 'string'
+                ? overrides.category
                 : typeof data.category === 'string'
                     ? data.category
                     : undefined,
-            host: data.host,
-            image: data.overrides?.ogImage || metadata?.imageUrl,
-            icon: data.overrides?.icon || metadata?.faviconUrl || metadata?.touchIconUrl,
+            host: typeof data.host === 'string' ? data.host : undefined,
+            image: typeof overrides.ogImage === 'string'
+                ? overrides.ogImage
+                : metadataImageUrl,
+            icon: typeof overrides.icon === 'string'
+                ? overrides.icon
+                : metadataFaviconUrl
+                    ? metadataFaviconUrl
+                    : metadataTouchIconUrl
+                        ? metadataTouchIconUrl
+                        : undefined,
             raw_data: data,
             style: {
-                desktop: data?.style?.desktop || '2x2',
-                mobile: data?.style?.mobile || '2x2',
+                desktop: typeof style.desktop === 'string' ? style.desktop : '2x2',
+                mobile: typeof style.mobile === 'string' ? style.mobile : '2x2',
             },
             position: {
-                desktop: position?.desktop || { x: 1, y: 1 },
-                mobile: position?.mobile || { x: 1, y: 1 },
+                desktop: {
+                    x: typeof desktopPosition.x === 'number' ? desktopPosition.x : 1,
+                    y: typeof desktopPosition.y === 'number' ? desktopPosition.y : 1,
+                },
+                mobile: {
+                    x: typeof mobilePosition.x === 'number' ? mobilePosition.x : 1,
+                    y: typeof mobilePosition.y === 'number' ? mobilePosition.y : 1,
+                },
             },
         };
     });
 
     return {
-        name: profile?.name || "Unknown",
-        handle: profile?.handle || "",
-        image: profile?.image || "",
-        bio: bioContent.map((p: any) => p?.content?.[0]?.text || "").filter(Boolean),
+        name: typeof profile.name === 'string' ? profile.name : "Unknown",
+        handle: typeof profile.handle === 'string' ? profile.handle : "",
+        image: typeof profile.image === 'string' ? profile.image : "",
+        bio: bioContent
+            .map((paragraph) => {
+                const paragraphRecord = toRecord(paragraph);
+                const content = Array.isArray(paragraphRecord.content) ? paragraphRecord.content : [];
+                const firstNode = toRecord(content[0]);
+                return typeof firstNode.text === 'string' ? firstNode.text : "";
+            })
+            .filter(Boolean),
         items,
     };
 }
