@@ -4,6 +4,7 @@ import { parseBentoData } from '@/utils/data-parser';
 import { mergeWithFallbackData } from '@/utils/raw-data';
 import {
   DISPLAY_HANDLE,
+  getFeaturedLink,
   getSocialLinks,
   groupBentoItems,
 } from '@/utils/link-presentation';
@@ -25,6 +26,7 @@ export default async function Home() {
   }
 
   const profileData = parseBentoData(rawData);
+  const featuredLink = getFeaturedLink(profileData.items);
   const socialLinks = getSocialLinks();
   const sections = groupBentoItems(profileData.items);
 
@@ -44,6 +46,11 @@ export default async function Home() {
           </span>
         </div>
         <div className="mt-4 space-y-6">
+          {featuredLink && (
+            <section>
+              <BentoGrid items={[featuredLink]} />
+            </section>
+          )}
           {sections.map((section) => (
             <section key={section.id}>
               <div className="mb-3 flex items-center gap-3 px-1">

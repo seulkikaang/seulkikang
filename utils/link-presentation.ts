@@ -17,13 +17,13 @@ export const FIXED_SOCIAL_LINKS = [
   },
   {
     id: '6dLbjJ1sC79nZNng',
-    href: 'https://www.threads.net/@seulgi.kaang',
+    href: 'https://www.threads.com/@marketer.seulki.ai',
     title: '스레드',
     iconSrc: '/social/threads.svg',
   },
   {
     id: 'O7qvJhTRMm1z1jRB',
-    href: 'https://www.instagram.com/seulgi.kaang/',
+    href: 'https://www.instagram.com/marketer.seulki.ai/',
     title: '인스타그램',
     iconSrc: '/social/instagram.svg',
   },
@@ -69,6 +69,8 @@ export const CATEGORY_OPTIONS = [
   { value: 'stories', label: '기사 + 영상' },
   { value: 'ai-tools', label: 'AI 툴 추천' },
 ] as const;
+
+export const FEATURED_LINK_ID = '6lxZn7qTuxzOrWVq';
 
 const GROUP_TITLES: Record<LinkGroupId, string> = {
   education: '강의 & 챌린지 & 전자책',
@@ -120,6 +122,10 @@ export function getSocialLinks(): SocialLinkItem[] {
   }));
 }
 
+export function getFeaturedLink(items: BentoItem[]): BentoItem | undefined {
+  return items.find((item) => item.id === FEATURED_LINK_ID);
+}
+
 export function getFixedSocialLink(id: string): SocialLinkItem | undefined {
   return FIXED_SOCIAL_LINKS.find((item) => item.id === id);
 }
@@ -154,7 +160,12 @@ export function groupBentoItems(items: BentoItem[]): LinkGroupSection[] {
   }
 
   for (const item of items) {
-    if (SOCIAL_LINK_IDS.includes(item.id as typeof SOCIAL_LINK_IDS[number])) continue;
+    if (
+      SOCIAL_LINK_IDS.includes(item.id as typeof SOCIAL_LINK_IDS[number]) ||
+      item.id === FEATURED_LINK_ID
+    ) {
+      continue;
+    }
     grouped.get(getLinkGroupId(item))?.push(item);
   }
 

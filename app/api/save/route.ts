@@ -44,6 +44,7 @@ export async function POST(request: Request) {
                             ...(item.raw_data || {}),
                             id: item.id,
                             href: item.href,
+                            category: item.category,
                             style: item.style,
                             overrides: {
                                 ...(item.raw_data?.overrides || {}),

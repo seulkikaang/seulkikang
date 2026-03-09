@@ -25,7 +25,11 @@ export function parseBentoData(raw: any): ProfileData {
             type: itemType,
             href,
             title: title || data.title || "Untitled",
-            category: typeof data.overrides?.category === 'string' ? data.overrides.category : undefined,
+            category: typeof data.overrides?.category === 'string'
+                ? data.overrides.category
+                : typeof data.category === 'string'
+                    ? data.category
+                    : undefined,
             host: data.host,
             image: data.overrides?.ogImage || metadata?.imageUrl,
             icon: data.overrides?.icon || metadata?.faviconUrl || metadata?.touchIconUrl,
