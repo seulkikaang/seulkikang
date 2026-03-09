@@ -1,14 +1,16 @@
 import React from 'react';
 import { resolveImageSrc } from '@/utils/image-src';
+import { SocialLinkItem } from '@/utils/link-presentation';
 
 interface ProfileHeaderProps {
     name: string;
     handle: string;
     image: string;
     bio: string[];
+    socialLinks?: SocialLinkItem[];
 }
 
-const ProfileHeader: React.FC<ProfileHeaderProps> = ({ name, handle, image, bio }) => {
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({ name, handle, image, bio, socialLinks = [] }) => {
     return (
         <div className="flex flex-col items-center pb-4 text-center">
             <p className="type-display text-xl font-semibold italic tracking-[0.08em] text-[color:var(--accent)]">
@@ -28,6 +30,28 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ name, handle, image, bio 
                     <p key={i}>{paragraph}</p>
                 ))}
             </div>
+
+            {socialLinks.length > 0 && (
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
+                    {socialLinks.map((link) => (
+                        <a
+                            key={link.id}
+                            href={link.href ? `/out/${link.id}` : '#'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={link.title}
+                            title={link.title}
+                            className="group rounded-[16px] border border-[color:var(--frame)] bg-[rgba(255,255,255,0.38)] p-1.5 shadow-[0_14px_28px_-24px_rgba(53,41,31,0.95)] transition-transform duration-200 hover:-translate-y-0.5"
+                        >
+                            <img
+                                src={resolveImageSrc(link.iconSrc)}
+                                alt={link.title}
+                                className="h-10 w-10 rounded-[12px] object-cover opacity-92 transition-opacity duration-200 group-hover:opacity-100"
+                            />
+                        </a>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

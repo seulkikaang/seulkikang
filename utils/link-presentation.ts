@@ -2,6 +2,19 @@ import { BentoItem } from '@/types/bento';
 
 export const DISPLAY_HANDLE = 'marketer.ai.seulki';
 export const DAILY_LINK_ID = '6lxZn7qTuxzOrWVq';
+export const SOCIAL_LINK_IDS = [
+  'oCxaY1i7VlF9ZmBW',
+  '6dLbjJ1sC79nZNng',
+  'O7qvJhTRMm1z1jRB',
+  'fPTrE1OHkRKzN5bK',
+] as const;
+
+const SOCIAL_ICON_PATHS: Record<string, string> = {
+  oCxaY1i7VlF9ZmBW: '/social/linkedin.svg',
+  '6dLbjJ1sC79nZNng': '/social/threads.svg',
+  O7qvJhTRMm1z1jRB: '/social/instagram.svg',
+  fPTrE1OHkRKzN5bK: '/social/brunch.svg',
+};
 
 export type LinkGroupId =
   | 'education'
@@ -14,6 +27,13 @@ export interface LinkGroupSection {
   id: LinkGroupId;
   title: string;
   items: BentoItem[];
+}
+
+export interface SocialLinkItem {
+  id: string;
+  href?: string;
+  title: string;
+  iconSrc: string;
 }
 
 const GROUP_TITLES: Record<LinkGroupId, string> = {
@@ -59,6 +79,20 @@ export function getDailyLinkItem(items: BentoItem[]): BentoItem | undefined {
   return items.find((item) => item.id === DAILY_LINK_ID);
 }
 
+export function getSocialLinks(items: BentoItem[]): SocialLinkItem[] {
+  return SOCIAL_LINK_IDS.map<SocialLinkItem | null>((id) => {
+    const item = items.find((entry) => entry.id === id);
+    if (!item) return null;
+
+    return {
+      id: item.id,
+      href: item.href,
+      title: getItemDisplayTitle(item),
+      iconSrc: SOCIAL_ICON_PATHS[item.id] ?? '/social/link.svg',
+    };
+  }).filter((item): item is SocialLinkItem => Boolean(item));
+}
+
 export function getLinkGroupId(item: BentoItem): LinkGroupId {
   return ITEM_GROUPS[item.id] ?? 'channels';
 }
@@ -86,7 +120,7 @@ export function groupBentoItems(items: BentoItem[]): LinkGroupSection[] {
   }
 
   for (const item of items) {
-    if (item.id === DAILY_LINK_ID) continue;
+    if (item.id === DAILY_LINK_ID || SOCIAL_LINK_IDS.includes(item.id as typeof SOCIAL_LINK_IDS[number])) continue;
     grouped.get(getLinkGroupId(item))?.push(item);
   }
 

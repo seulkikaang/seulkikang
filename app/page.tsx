@@ -4,9 +4,10 @@ import { parseBentoData } from '@/utils/data-parser';
 import { mergeWithFallbackData } from '@/utils/raw-data';
 import {
   DISPLAY_HANDLE,
-  getDailyLinkItem,
+  getSocialLinks,
   groupBentoItems,
 } from '@/utils/link-presentation';
+import { trackHomeView } from '@/utils/view-counter';
 import { kv } from '@vercel/kv';
 import rawDataFromJson from '@/data/bento-data.json';
 
@@ -14,6 +15,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   let rawData: any = rawDataFromJson;
+  const viewCount = await trackHomeView();
   try {
     const kvData = await kv.get('bento_data');
     rawData = mergeWithFallbackData(kvData, rawDataFromJson);
@@ -23,7 +25,7 @@ export default async function Home() {
   }
 
   const profileData = parseBentoData(rawData);
-  const dailyLink = getDailyLinkItem(profileData.items);
+  const socialLinks = getSocialLinks(profileData.items);
   const sections = groupBentoItems(profileData.items);
 
   return (
@@ -34,18 +36,12 @@ export default async function Home() {
           handle={DISPLAY_HANDLE}
           image={profileData.image}
           bio={profileData.bio}
+          socialLinks={socialLinks}
         />
         <div className="dotted-rule mt-2 flex items-center justify-end px-1 py-2">
-          {dailyLink && (
-            <a
-              href={`/out/${dailyLink.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="type-display text-lg font-semibold italic tracking-[0.08em] text-[color:var(--accent)] transition-opacity hover:opacity-70"
-            >
-              daily
-            </a>
-          )}
+          <span className="text-[10px] uppercase tracking-[0.24em] text-[color:var(--accent)]/80">
+            {viewCount.toLocaleString()} views
+          </span>
         </div>
         <div className="mt-4 space-y-6">
           {sections.map((section) => (
