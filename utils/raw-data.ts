@@ -45,5 +45,9 @@ export function mergeWithFallbackData(raw: unknown, fallbackRaw: unknown) {
       ...(fallback.site ?? {}),
       ...(data.site ?? {}),
     },
+    profileSettings: {
+      ...(fallback.profileSettings ?? {}),
+      ...(data.profileSettings ?? {}),
+    },
   };
 }

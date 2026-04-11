@@ -14,6 +14,24 @@ interface SaveRequestBody {
         faviconEmoji?: string;
         faviconImage?: string;
     };
+    profileSettings?: {
+        name?: string;
+        handle?: string;
+        bio?: string[];
+        profileImage?: string;
+        showViews?: boolean;
+        socialLinks?: Array<{
+            id: string;
+            title: string;
+            href: string;
+            iconSrc: string;
+            platform: string;
+        }>;
+        categories?: Array<{
+            value: string;
+            label: string;
+        }>;
+    };
 }
 
 function toRecord(value: unknown): Record<string, unknown> {
@@ -42,8 +60,11 @@ export async function POST(request: Request) {
                 : currentSite.faviconImage,
         };
 
+        const nextProfileSettings = data.profileSettings ?? (baseData as any)?.profileSettings ?? {};
+
         const updatedData = {
             ...baseData,
+            profileSettings: nextProfileSettings,
             profile: {
                 ...(baseData?.profile || {}),
                 bento: {

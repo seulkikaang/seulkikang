@@ -35,11 +35,7 @@ export const FIXED_SOCIAL_LINKS = [
   },
 ] as const;
 
-export type LinkGroupId =
-  | 'education'
-  | 'community'
-  | 'stories'
-  | 'ai-tools';
+export type LinkGroupId = string;
 
 export interface LinkGroupSection {
   id: LinkGroupId;
@@ -54,28 +50,53 @@ export interface SocialLinkItem {
   iconSrc: string;
 }
 
-export const CATEGORY_OPTIONS = [
+export interface CategoryOption {
+  value: string;
+  label: string;
+}
+
+export const DEFAULT_CATEGORY_OPTIONS: CategoryOption[] = [
   { value: 'education', label: '강의 & 챌린지 & 전자책' },
   { value: 'community', label: '커뮤니티 참여' },
   { value: 'stories', label: '기사 + 영상' },
   { value: 'ai-tools', label: 'AI 툴 추천' },
-] as const;
+];
+
+export const UNCATEGORIZED_VALUE = '__uncategorized__';
+
+let _customCategories: CategoryOption[] | null = null;
+
+export function setCategories(categories: CategoryOption[]) {
+  _customCategories = categories;
+}
+
+export function getCategories(): CategoryOption[] {
+  return _customCategories ?? DEFAULT_CATEGORY_OPTIONS;
+}
+
+export function getCategoryOptionsWithUncategorized(): CategoryOption[] {
+  return [
+    { value: UNCATEGORIZED_VALUE, label: '카테고리 설정 안함' },
+    ...getCategories(),
+  ];
+}
+
+/** @deprecated Use getCategories() instead */
+export const CATEGORY_OPTIONS = DEFAULT_CATEGORY_OPTIONS;
 
 export const FEATURED_LINK_ID = '6lxZn7qTuxzOrWVq';
 
-const GROUP_TITLES: Record<LinkGroupId, string> = {
-  education: '강의 & 챌린지 & 전자책',
-  community: '커뮤니티 참여',
-  stories: '기사 + 영상',
-  'ai-tools': 'AI 툴 추천',
-};
+function getGroupTitles(): Record<string, string> {
+  const titles: Record<string, string> = {};
+  for (const cat of getCategories()) {
+    titles[cat.value] = cat.label;
+  }
+  return titles;
+}
 
-const GROUP_ORDER: LinkGroupId[] = [
-  'education',
-  'community',
-  'stories',
-  'ai-tools',
-];
+function getGroupOrder(): string[] {
+  return getCategories().map((c) => c.value);
+}
 
 const ITEM_GROUPS: Record<string, LinkGroupId> = {
   '6lxZn7qTuxzOrWVq': 'community',
@@ -97,8 +118,8 @@ const ITEM_GROUPS: Record<string, LinkGroupId> = {
   If8B6All2rnzM8CG: 'ai-tools',
 };
 
-function isLinkGroupId(value: string): value is LinkGroupId {
-  return CATEGORY_OPTIONS.some((option) => option.value === value);
+function isLinkGroupId(value: string): boolean {
+  return getCategories().some((option) => option.value === value);
 }
 
 export function getSocialLinks(): SocialLinkItem[] {
@@ -177,7 +198,7 @@ export function getLinkGroupId(item: BentoItem): LinkGroupId {
 }
 
 export function getLinkGroupLabel(item: BentoItem): string {
-  return GROUP_TITLES[getLinkGroupId(item)];
+  return getGroupTitles()[getLinkGroupId(item)] ?? '기타';
 }
 
 export function getItemDisplayTitle(item: BentoItem): string {
@@ -192,11 +213,15 @@ export function getItemDisplayTitle(item: BentoItem): string {
 }
 
 export function groupBentoItems(items: BentoItem[]): LinkGroupSection[] {
-  const grouped = new Map<LinkGroupId, BentoItem[]>();
+  const groupOrder = getGroupOrder();
+  const groupTitles = getGroupTitles();
+  const grouped = new Map<string, BentoItem[]>();
 
-  for (const groupId of GROUP_ORDER) {
+  for (const groupId of groupOrder) {
     grouped.set(groupId, []);
   }
+
+  const uncategorizedItems: BentoItem[] = [];
 
   for (const item of items) {
     if (
@@ -205,10 +230,31 @@ export function groupBentoItems(items: BentoItem[]): LinkGroupSection[] {
     ) {
       continue;
     }
-    grouped.get(getLinkGroupId(item))?.push(item);
+
+    if (item.category === UNCATEGORIZED_VALUE) {
+      uncategorizedItems.push(item);
+      continue;
+    }
+
+    const groupId = getLinkGroupId(item);
+    if (!grouped.has(groupId)) {
+      grouped.set(groupId, []);
+    }
+    grouped.get(groupId)?.push(item);
   }
 
-  return GROUP_ORDER.map((groupId) => {
+  const sections: LinkGroupSection[] = [];
+
+  // Uncategorized items go to the top without a section header
+  if (uncategorizedItems.length > 0) {
+    sections.push({
+      id: UNCATEGORIZED_VALUE,
+      title: '',
+      items: uncategorizedItems,
+    });
+  }
+
+  for (const groupId of groupOrder) {
     const groupItems = grouped.get(groupId) ?? [];
     const orderedItems = groupItems.sort((left, right) => {
       if (groupId !== 'ai-tools') return 0;
@@ -217,10 +263,14 @@ export function groupBentoItems(items: BentoItem[]): LinkGroupSection[] {
       return 0;
     });
 
-    return {
-      id: groupId,
-      title: GROUP_TITLES[groupId],
-      items: orderedItems,
-    };
-  }).filter((section) => section.items.length > 0);
+    if (orderedItems.length > 0) {
+      sections.push({
+        id: groupId,
+        title: groupTitles[groupId] ?? groupId,
+        items: orderedItems,
+      });
+    }
+  }
+
+  return sections;
 }
