@@ -1,4 +1,4 @@
-import { CategoryOption, DEFAULT_CATEGORY_OPTIONS } from './link-presentation';
+import { CategoryOption, DEFAULT_CATEGORY_OPTIONS, FIXED_SOCIAL_LINKS } from './link-presentation';
 
 export interface SocialChannel {
   id: string;
@@ -7,6 +7,18 @@ export interface SocialChannel {
   iconSrc: string;
   platform: string;
 }
+
+export const FIXED_SOCIAL_LINKS_DEFAULT: SocialChannel[] = FIXED_SOCIAL_LINKS.map((l) => ({
+  id: l.id,
+  title: l.title,
+  href: l.href,
+  iconSrc: l.iconSrc,
+  platform: l.id === 'oCxaY1i7VlF9ZmBW' ? 'linkedin'
+    : l.id === '6dLbjJ1sC79nZNng' ? 'threads'
+    : l.id === 'O7qvJhTRMm1z1jRB' ? 'instagram'
+    : l.id === 'fPTrE1OHkRKzN5bK' ? 'brunch'
+    : 'custom',
+}));
 
 export interface ProfileSettings {
   name: string;
@@ -79,7 +91,7 @@ export function getProfileSettings(raw: unknown): ProfileSettings {
     bio,
     profileImage,
     showViews,
-    socialLinks,
+    socialLinks: socialLinks.length > 0 ? socialLinks : FIXED_SOCIAL_LINKS_DEFAULT,
     categories: categories.length > 0 ? categories : DEFAULT_CATEGORY_OPTIONS,
   };
 }

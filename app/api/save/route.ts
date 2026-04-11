@@ -60,7 +60,7 @@ export async function POST(request: Request) {
                 : currentSite.faviconImage,
         };
 
-        const nextProfileSettings = data.profileSettings ?? (baseData as any)?.profileSettings ?? {};
+        const nextProfileSettings = data.profileSettings ?? toRecord(baseData).profileSettings ?? {};
 
         const updatedData = {
             ...baseData,
