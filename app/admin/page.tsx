@@ -10,6 +10,10 @@ import {
     useSensor,
     useSensors,
     DragEndEvent,
+    useDroppable,
+    pointerWithin,
+    rectIntersection,
+    CollisionDetection,
 } from '@dnd-kit/core';
 import {
     arrayMove,
@@ -55,6 +59,16 @@ interface LinkViewsResponse {
         todayClicks: number;
         totalClicks: number;
     }>;
+}
+
+/* ─── Droppable Category Zone ─── */
+function DroppableCategory({ id, children }: { id: string; children: React.ReactNode }) {
+    const { setNodeRef, isOver } = useDroppable({ id: `category:${id}` });
+    return (
+        <div ref={setNodeRef} className={`min-h-[40px] rounded-lg transition-colors ${isOver ? 'bg-blue-50 ring-2 ring-blue-200' : ''}`}>
+            {children}
+        </div>
+    );
 }
 
 /* ─── Sortable Link Row ─── */
@@ -223,22 +237,39 @@ export default function AdminPage() {
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
     );
 
+    // Custom collision: prefer item-level (closestCenter), fallback to category zone (rectIntersection)
+    const collisionDetection: CollisionDetection = (args) => {
+        const itemCollisions = closestCenter(args);
+        if (itemCollisions.length > 0) return itemCollisions;
+        return rectIntersection(args);
+    };
+
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
-        if (!over || active.id === over.id || !profile) return;
+        if (!over || !profile) return;
 
+        const overId = String(over.id);
         const items = [...profile.items];
         const oldIndex = items.findIndex((i) => i.id === active.id);
+        if (oldIndex === -1) return;
+
+        // Dropped onto a category zone (empty area)
+        if (overId.startsWith('category:')) {
+            const targetCat = overId.replace('category:', '');
+            const moved = { ...items[oldIndex], category: targetCat };
+            setProfile({ ...profile, items: items.map((i) => i.id === active.id ? moved : i) });
+            return;
+        }
+
+        // Dropped onto another item
+        if (active.id === over.id) return;
         const newIndex = items.findIndex((i) => i.id === over.id);
-        if (oldIndex === -1 || newIndex === -1) return;
+        if (newIndex === -1) return;
 
-        // If dropped into a different category, update category
-        const targetItem = items[newIndex];
-        const sourceItem = items[oldIndex];
-        const targetCat = getEffectiveCategory(targetItem);
-        const sourceCat = getEffectiveCategory(sourceItem);
-
+        const targetCat = getEffectiveCategory(items[newIndex]);
         const reordered = arrayMove(items, oldIndex, newIndex);
+        const sourceCat = getEffectiveCategory(items[oldIndex]);
+
         if (targetCat !== sourceCat) {
             const moved = { ...reordered.find((i) => i.id === active.id)!, category: targetCat };
             setProfile({ ...profile, items: reordered.map((i) => i.id === active.id ? moved : i) });
@@ -559,7 +590,7 @@ export default function AdminPage() {
                             </div>
                         )}
 
-                        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                        <DndContext sensors={sensors} collisionDetection={collisionDetection} onDragEnd={handleDragEnd}>
                             <SortableContext items={allDraggableIds} strategy={verticalListSortingStrategy}>
                                 <div className="space-y-6">
                                     {groupedItems.map((group) => (
@@ -597,14 +628,16 @@ export default function AdminPage() {
                                                 )}
                                             </div>
                                             {/* Items */}
-                                            <div className="space-y-2">
-                                                {group.items.map((item) => (
-                                                    <SortableLinkRow key={item.id} item={item} onEdit={(it) => setIsEditing(it)} onDelete={handleDelete} />
-                                                ))}
-                                                {group.items.length === 0 && (
-                                                    <p className="py-3 text-center text-[11px] text-gray-400">비어 있음</p>
-                                                )}
-                                            </div>
+                                            <DroppableCategory id={group.value}>
+                                                <div className="space-y-2">
+                                                    {group.items.map((item) => (
+                                                        <SortableLinkRow key={item.id} item={item} onEdit={(it) => setIsEditing(it)} onDelete={handleDelete} />
+                                                    ))}
+                                                    {group.items.length === 0 && (
+                                                        <p className="py-3 text-center text-[11px] text-gray-400">여기로 드래그하여 이동</p>
+                                                    )}
+                                                </div>
+                                            </DroppableCategory>
                                         </div>
                                     ))}
                                 </div>
