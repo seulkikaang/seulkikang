@@ -29,7 +29,6 @@ import {
     UNCATEGORIZED_VALUE,
     DISPLAY_HANDLE,
     SOCIAL_LINK_IDS,
-    FEATURED_LINK_ID,
     getLinkGroupId,
     CategoryOption,
 } from '@/utils/link-presentation';
@@ -76,13 +75,25 @@ function SortableLinkRow({
         zIndex: isDragging ? 50 : 'auto' as const,
     };
 
+    const thumb = item.image ? resolveImageSrc(item.image) : null;
+    const iconImg = item.icon ? resolveImageSrc(item.icon) : null;
+    const autoFavicon = !iconImg && item.href ? (() => { try { return `https://www.google.com/s2/favicons?domain=${new URL(item.href!).hostname}&sz=64`; } catch { return null; } })() : null;
+
     return (
-        <div ref={setNodeRef} style={style} className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2.5">
-            <button {...attributes} {...listeners} className="cursor-grab text-gray-300 hover:text-gray-500 active:cursor-grabbing">
+        <div ref={setNodeRef} style={style} className="flex items-center gap-2.5 rounded-xl border border-gray-200 bg-white px-3 py-2">
+            <button {...attributes} {...listeners} className="cursor-grab text-gray-300 hover:text-gray-500 active:cursor-grabbing shrink-0">
                 <GripVertical className="h-4 w-4" />
             </button>
-            {item.icon && (
-                <img src={resolveImageSrc(item.icon)} alt="" className="h-5 w-5 rounded object-cover" />
+            {thumb ? (
+                <img src={thumb} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
+            ) : iconImg ? (
+                <img src={iconImg} alt="" className="h-8 w-8 shrink-0 rounded object-cover" />
+            ) : autoFavicon ? (
+                <img src={autoFavicon} alt="" className="h-8 w-8 shrink-0 rounded object-cover" />
+            ) : (
+                <div className="h-12 w-12 shrink-0 rounded-lg bg-gray-100 flex items-center justify-center">
+                    <span className="text-[10px] text-gray-400">No img</span>
+                </div>
             )}
             <div className="min-w-0 flex-1">
                 <p className="truncate text-xs font-medium text-gray-900">{item.title || 'Untitled'}</p>
@@ -90,12 +101,14 @@ function SortableLinkRow({
                     <p className="truncate text-[10px] text-gray-400">{item.href}</p>
                 )}
             </div>
-            <button onClick={() => onEdit(item)} className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
-                <Settings2 className="h-3.5 w-3.5" />
-            </button>
-            <button onClick={() => onDelete(item.id)} className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500">
-                <Trash2 className="h-3.5 w-3.5" />
-            </button>
+            <div className="flex shrink-0 gap-1">
+                <button onClick={() => onEdit(item)} className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                    <Settings2 className="h-3.5 w-3.5" />
+                </button>
+                <button onClick={() => onDelete(item.id)} className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500">
+                    <Trash2 className="h-3.5 w-3.5" />
+                </button>
+            </div>
         </div>
     );
 }
@@ -228,8 +241,8 @@ export default function AdminPage() {
     };
 
     /* ── Helpers ── */
-    const isSocialOrFeatured = (item: BentoItemData) =>
-        SOCIAL_LINK_IDS.includes(item.id as any) || item.id === FEATURED_LINK_ID;
+    const isSocialLink = (item: BentoItemData) =>
+        SOCIAL_LINK_IDS.includes(item.id as any);
 
     const getEffectiveCategory = (item: BentoItemData): string => {
         if (item.category === UNCATEGORIZED_VALUE) return UNCATEGORIZED_VALUE;
@@ -241,7 +254,7 @@ export default function AdminPage() {
         if (!profile || !profileSettings) return [];
         const cats = profileSettings.categories;
         const allCats = [{ value: UNCATEGORIZED_VALUE, label: '카테고리 설정 안함' }, ...cats];
-        const regular = profile.items.filter((i) => !isSocialOrFeatured(i));
+        const regular = profile.items.filter((i) => !isSocialLink(i));
 
         return allCats.map((cat) => ({
             ...cat,
@@ -314,7 +327,7 @@ export default function AdminPage() {
 
     const handleDeleteCategory = (catValue: string) => {
         if (!profileSettings || !profile) return;
-        const itemsInCat = profile.items.filter((i) => !isSocialOrFeatured(i) && getEffectiveCategory(i) === catValue);
+        const itemsInCat = profile.items.filter((i) => !isSocialLink(i) && getEffectiveCategory(i) === catValue);
         if (itemsInCat.length > 0) {
             if (!confirm(`카테고리 삭제 시 포함된 링크 ${itemsInCat.length}개도 함께 삭제됩니다. 진행하시겠습니까?`)) return;
             setProfile({ ...profile, items: profile.items.filter((i) => !itemsInCat.some((ci) => ci.id === i.id)) });
@@ -415,24 +428,27 @@ export default function AdminPage() {
                     {/* ── SNS Channels ── */}
                     <Section title="SNS 채널 관리" desc="프로필에 노출할 SNS 채널" action={<SmallButton icon={<Plus className="h-3 w-3" />} label="추가" onClick={handleAddSocialLink} />}>
                         <div className="space-y-3">
-                            {profileSettings.socialLinks.map((link) => (
-                                <div key={link.id} className="rounded-xl border border-gray-200 bg-gray-50 p-3">
-                                    <div className="flex items-center justify-between gap-2">
-                                        <select value={link.platform} onChange={(e) => {
-                                            const p = SOCIAL_PLATFORM_OPTIONS.find((p) => p.value === e.target.value);
-                                            handleUpdateSocialLink(link.id, { platform: e.target.value, title: p?.label ?? link.title, iconSrc: p?.defaultIcon ?? link.iconSrc });
-                                        }} className="rounded-lg border border-gray-300 px-2 py-1.5 text-xs">
-                                            {SOCIAL_PLATFORM_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                                        </select>
-                                        <button onClick={() => handleRemoveSocialLink(link.id)} className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                            {profileSettings.socialLinks.map((link) => {
+                                const platformInfo = SOCIAL_PLATFORM_OPTIONS.find((p) => p.value === link.platform);
+                                return (
+                                    <div key={link.id} className="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                                        <div className="flex items-center gap-2">
+                                            {link.iconSrc && <img src={link.iconSrc} alt="" className="h-6 w-6 rounded" />}
+                                            <select value={link.platform} onChange={(e) => {
+                                                const p = SOCIAL_PLATFORM_OPTIONS.find((p) => p.value === e.target.value);
+                                                handleUpdateSocialLink(link.id, { platform: e.target.value, title: p?.label ?? link.title, iconSrc: p?.defaultIcon ?? link.iconSrc });
+                                            }} className="flex-1 rounded-lg border border-gray-300 px-2 py-1.5 text-xs">
+                                                {SOCIAL_PLATFORM_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                                            </select>
+                                            <button onClick={() => handleRemoveSocialLink(link.id)} className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                                        </div>
+                                        <div className="mt-2 space-y-2">
+                                            <input type="text" value={link.title} onChange={(e) => handleUpdateSocialLink(link.id, { title: e.target.value })} placeholder="채널 이름" className="block w-full rounded-lg border border-gray-300 px-2 py-1.5 text-xs focus:border-black focus:outline-none focus:ring-1 focus:ring-black" />
+                                            <input type="text" value={link.href} onChange={(e) => handleUpdateSocialLink(link.id, { href: e.target.value })} placeholder="https://..." className="block w-full rounded-lg border border-gray-300 px-2 py-1.5 text-xs focus:border-black focus:outline-none focus:ring-1 focus:ring-black" />
+                                        </div>
                                     </div>
-                                    <div className="mt-2 space-y-2">
-                                        <input type="text" value={link.title} onChange={(e) => handleUpdateSocialLink(link.id, { title: e.target.value })} placeholder="채널 이름" className="block w-full rounded-lg border border-gray-300 px-2 py-1.5 text-xs focus:border-black focus:outline-none focus:ring-1 focus:ring-black" />
-                                        <input type="text" value={link.href} onChange={(e) => handleUpdateSocialLink(link.id, { href: e.target.value })} placeholder="https://..." className="block w-full rounded-lg border border-gray-300 px-2 py-1.5 text-xs focus:border-black focus:outline-none focus:ring-1 focus:ring-black" />
-                                        <input type="text" value={link.iconSrc} onChange={(e) => handleUpdateSocialLink(link.id, { iconSrc: e.target.value })} placeholder="아이콘 경로 (/social/...)" className="block w-full rounded-lg border border-gray-300 px-2 py-1.5 text-xs focus:border-black focus:outline-none focus:ring-1 focus:ring-black" />
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                             {profileSettings.socialLinks.length === 0 && (
                                 <p className="py-2 text-xs text-gray-400">기본 SNS 채널이 사용됩니다. 추가하면 커스텀 채널로 대체됩니다.</p>
                             )}
@@ -552,7 +568,7 @@ export default function AdminPage() {
                                                 ) : (
                                                     <>
                                                         <h3 className="text-xs font-semibold text-gray-700">
-                                                            {group.value === UNCATEGORIZED_VALUE ? '카테고리 없음' : group.label}
+                                                            {group.value === UNCATEGORIZED_VALUE ? '최상단 기본 노출' : group.label}
                                                             <span className="ml-1.5 text-[10px] font-normal text-gray-400">({group.items.length})</span>
                                                         </h3>
                                                         <div className="flex items-center gap-1">

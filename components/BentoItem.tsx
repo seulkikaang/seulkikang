@@ -24,9 +24,20 @@ function getHostLabel(href?: string, host?: string) {
     }
 }
 
+function getAutoFavicon(href?: string): string | null {
+    if (!href) return null;
+    try {
+        const domain = new URL(href).hostname;
+        return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+    } catch {
+        return null;
+    }
+}
+
 const BentoItem: React.FC<BentoItemProps> = ({ item }) => {
     const hostLabel = getHostLabel(item.href, item.host);
     const linkHref = item.href ? `/out/${item.id}` : '#';
+    const iconSrc = item.icon ? resolveImageSrc(item.icon) : getAutoFavicon(item.href);
 
     return (
         <a
@@ -39,10 +50,10 @@ const BentoItem: React.FC<BentoItemProps> = ({ item }) => {
         >
             <div className="min-w-0 flex flex-1 flex-col justify-center pr-3">
                 <div className="mb-2 flex min-w-0 items-center gap-2">
-                    {item.icon && (
+                    {iconSrc && (
                         <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[color:var(--accent-soft)] bg-[rgba(255,255,255,0.7)] p-1.5">
                             <img
-                                src={resolveImageSrc(item.icon)}
+                                src={iconSrc}
                                 alt=""
                                 className="h-full w-full object-contain"
                             />

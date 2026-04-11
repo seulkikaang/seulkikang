@@ -76,7 +76,7 @@ export function getCategories(): CategoryOption[] {
 
 export function getCategoryOptionsWithUncategorized(): CategoryOption[] {
   return [
-    { value: UNCATEGORIZED_VALUE, label: '카테고리 설정 안함' },
+    { value: UNCATEGORIZED_VALUE, label: '최상단 기본 노출' },
     ...getCategories(),
   ];
 }
