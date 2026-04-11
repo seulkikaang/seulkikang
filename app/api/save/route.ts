@@ -86,6 +86,7 @@ export async function POST(request: Request) {
                                     category: item.category,
                                     ogImage: item.image,
                                     icon: item.icon,
+                                    expiresAt: item.expiresAt || undefined,
                                 }
                             },
                             position: item.position

@@ -99,7 +99,7 @@ function getGroupOrder(): string[] {
 }
 
 const ITEM_GROUPS: Record<string, LinkGroupId> = {
-  '6lxZn7qTuxzOrWVq': 'community',
+  '6lxZn7qTuxzOrWVq': UNCATEGORIZED_VALUE,
   qwyBoLLHJ1ByLD8n: 'education',
   D6AvzG4NEInLxtlP: 'education',
   crHmxxmCv8FPTegZ: 'education',
@@ -137,6 +137,11 @@ export function getFixedSocialLink(id: string): SocialLinkItem | undefined {
 }
 
 export function getLinkGroupId(item: BentoItem): LinkGroupId {
+  // Newsletter always goes to uncategorized (top)
+  if (item.id === FEATURED_LINK_ID) {
+    return UNCATEGORIZED_VALUE;
+  }
+
   if (typeof item.category === 'string' && isLinkGroupId(item.category)) {
     return item.category;
   }
@@ -224,10 +229,7 @@ export function groupBentoItems(items: BentoItem[]): LinkGroupSection[] {
   const uncategorizedItems: BentoItem[] = [];
 
   for (const item of items) {
-    if (
-      SOCIAL_LINK_IDS.includes(item.id as typeof SOCIAL_LINK_IDS[number]) ||
-      item.id === FEATURED_LINK_ID
-    ) {
+    if (SOCIAL_LINK_IDS.includes(item.id as typeof SOCIAL_LINK_IDS[number])) {
       continue;
     }
 

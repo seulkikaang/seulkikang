@@ -63,6 +63,9 @@ export function parseBentoData(raw: unknown): ProfileData {
                     : metadataTouchIconUrl
                         ? metadataTouchIconUrl
                         : undefined,
+            expiresAt: typeof overrides.expiresAt === 'string' ? overrides.expiresAt
+                : typeof data.expiresAt === 'string' ? data.expiresAt
+                : undefined,
             raw_data: data,
             style: {
                 desktop: typeof style.desktop === 'string' ? style.desktop : '2x2',

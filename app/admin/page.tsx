@@ -97,9 +97,16 @@ function SortableLinkRow({
             )}
             <div className="min-w-0 flex-1">
                 <p className="truncate text-xs font-medium text-gray-900">{item.title || 'Untitled'}</p>
-                {item.href && (
-                    <p className="truncate text-[10px] text-gray-400">{item.href}</p>
-                )}
+                <div className="flex items-center gap-1.5">
+                    {item.href && (
+                        <p className="truncate text-[10px] text-gray-400">{item.href}</p>
+                    )}
+                    {item.expiresAt && (
+                        <span className={`shrink-0 rounded px-1 py-0.5 text-[9px] font-medium ${item.expiresAt < new Date().toISOString().slice(0, 10) ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-700'}`}>
+                            {item.expiresAt < new Date().toISOString().slice(0, 10) ? '만료됨' : `~${item.expiresAt.slice(5)}`}
+                        </span>
+                    )}
+                </div>
             </div>
             <div className="flex shrink-0 gap-1">
                 <button onClick={() => onEdit(item)} className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
@@ -634,11 +641,30 @@ export default function AdminPage() {
                                 </div>
                             </Field>
                             <Field label="Icon (Favicon)">
-                                <input type="text" value={isEditing.icon || ''} onChange={(e) => setIsEditing({ ...isEditing, icon: e.target.value })} placeholder="https://... or /images/..." className="block w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black" />
+                                <input type="text" value={isEditing.icon || ''} onChange={(e) => setIsEditing({ ...isEditing, icon: e.target.value })} placeholder="비워두면 자동 (사이트 아이콘)" className="block w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black" />
                                 <div className="mt-2 flex items-center gap-3">
                                     {isEditing.icon && <img src={resolveImageSrc(isEditing.icon)} alt="" className="h-8 w-8 rounded object-cover" />}
                                     <UploadButton loading={isUploadingIcon} onChange={handleIconUpload} label="Upload Icon" size="sm" />
                                 </div>
+                            </Field>
+                            <Field label="노출 종료일">
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="date"
+                                        value={isEditing.expiresAt || ''}
+                                        onChange={(e) => setIsEditing({ ...isEditing, expiresAt: e.target.value || undefined })}
+                                        className="block w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+                                    />
+                                    {isEditing.expiresAt && (
+                                        <button
+                                            onClick={() => setIsEditing({ ...isEditing, expiresAt: undefined })}
+                                            className="shrink-0 rounded px-2 py-1 text-xs text-gray-500 hover:bg-gray-100"
+                                        >
+                                            해제
+                                        </button>
+                                    )}
+                                </div>
+                                <p className="mt-1 text-[10px] text-gray-400">설정하면 해당 날짜 이후 자동으로 페이지에서 숨겨집니다. 비워두면 항상 노출.</p>
                             </Field>
                         </div>
                         <div className="mt-6 flex justify-end space-x-3">

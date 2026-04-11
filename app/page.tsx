@@ -5,7 +5,6 @@ import { mergeWithFallbackData } from '@/utils/raw-data';
 import {
   DISPLAY_HANDLE,
   UNCATEGORIZED_VALUE,
-  getFeaturedLink,
   getSocialLinks,
   groupBentoItems,
   setCategories,
@@ -36,7 +35,6 @@ export default async function Home() {
     setCategories(profileSettings.categories);
   }
 
-  const featuredLink = getFeaturedLink(profileData.items);
   const socialLinks = profileSettings.socialLinks.length > 0
     ? profileSettings.socialLinks.map((link) => ({
         id: link.id,
@@ -45,7 +43,13 @@ export default async function Home() {
         iconSrc: link.iconSrc,
       }))
     : getSocialLinks();
-  const sections = groupBentoItems(profileData.items);
+  // Filter out expired items
+  const now = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const activeItems = profileData.items.filter((item) => {
+    if (!item.expiresAt) return true;
+    return item.expiresAt >= now;
+  });
+  const sections = groupBentoItems(activeItems);
 
   return (
     <main className="site-shell flex min-h-screen justify-center px-4 py-5 sm:px-6 sm:py-8">
@@ -65,11 +69,6 @@ export default async function Home() {
           </div>
         )}
         <div className="mt-4 space-y-6">
-          {featuredLink && (
-            <section>
-              <BentoGrid items={[featuredLink]} />
-            </section>
-          )}
           {sections.map((section) => (
             <section key={section.id}>
               {section.id !== UNCATEGORIZED_VALUE && (

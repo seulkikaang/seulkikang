@@ -22,6 +22,7 @@ export interface BentoItem {
     bg: string;
     text: string;
   };
+  expiresAt?: string; // ISO date string, e.g. "2025-12-31"
 }
 
 export interface ProfileData {
