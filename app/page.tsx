@@ -9,7 +9,7 @@ import {
   groupBentoItems,
   setCategories,
 } from '@/utils/link-presentation';
-import { getProfileSettings, ProfileSettings } from '@/utils/profile-settings';
+import { getProfileSettings } from '@/utils/profile-settings';
 import { trackHomeView } from '@/utils/view-counter';
 import { kv } from '@vercel/kv';
 import rawDataFromJson from '@/data/bento-data.json';
@@ -74,7 +74,7 @@ export default async function Home() {
               {section.id !== UNCATEGORIZED_VALUE && (
                 <div className="mb-3 flex items-center gap-3 px-1">
                   <span className="h-px flex-1 bg-[rgba(156,37,49,0.22)]" />
-                  <h2 className="type-display text-[1.1rem] font-semibold italic text-[color:var(--accent)]">
+                  <h2 className="type-display text-[1.1rem] font-semibold text-[color:var(--accent)]">
                     {section.title}
                   </h2>
                   <span className="h-px flex-1 bg-[rgba(156,37,49,0.22)]" />

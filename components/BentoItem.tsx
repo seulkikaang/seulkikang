@@ -66,7 +66,7 @@ const BentoItem: React.FC<BentoItemProps> = ({ item }) => {
                     )}
                 </div>
 
-                <h3 className="type-display line-clamp-2 text-[0.86rem] leading-[1.02] font-semibold text-[color:var(--foreground)] transition-colors group-hover:text-[color:var(--accent)] whitespace-normal break-words">
+                <h3 className="type-display line-clamp-2 text-[0.86rem] leading-[1.16] font-semibold text-[color:var(--foreground)] transition-colors group-hover:text-[color:var(--accent)] whitespace-normal break-words">
                     {item.title}
                 </h3>
             </div>

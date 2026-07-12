@@ -13,7 +13,7 @@ interface ProfileHeaderProps {
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({ name, handle, image, bio, socialLinks = [] }) => {
     return (
         <div className="flex flex-col items-center pb-4 text-center">
-            <p className="type-display text-xl font-semibold italic tracking-[0.08em] text-[color:var(--accent)]">
+            <p className="type-display text-xl font-semibold text-[color:var(--accent)]">
                 {handle ? `@${handle}` : "curated links"}
             </p>
 
@@ -21,7 +21,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ name, handle, image, bio,
                 <img src={resolveImageSrc(image)} alt={name} className="h-full w-full object-cover" />
             </div>
 
-            <h1 className="type-display mt-5 max-w-[16rem] text-[3.4rem] leading-[0.86] font-semibold tracking-[-0.04em] text-[color:var(--foreground)] md:text-[3.8rem]">
+            <h1 className="type-display mt-5 max-w-[16rem] text-[3.4rem] leading-[0.92] font-semibold text-[color:var(--foreground)] md:text-[3.8rem]">
                 {name}
             </h1>
 

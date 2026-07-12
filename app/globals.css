@@ -19,8 +19,8 @@
   --accent: #9c2531;
   --accent-soft: #ead8cb;
   --text-muted: #786956;
-  --body-font: var(--font-body), "Avenir Next", "Helvetica Neue", Arial, sans-serif;
-  --display-font: var(--font-display), "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  --body-font: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  --display-font: "MaruBuriBold", "MaruBuri", "Noto Serif KR", "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
   --mono-font: var(--font-geist-mono), monospace;
 }
 
@@ -50,6 +50,7 @@ a {
 
 .type-display {
   font-family: var(--display-font);
+  letter-spacing: 0;
 }
 
 .site-shell {
