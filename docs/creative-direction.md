@@ -75,9 +75,13 @@
 6. 모든 릴스는 "부러운 삶의 한 장면, 그 뒤에 보이지 않는 스태프(AI)" 구조
 
 **시그니처 카피 후보** (반복 노출로 각인)
-- *"AI is my quiet luxury."*
-- *"I don't work harder. I have staff."*
-- *"Your AI BFF"* (바이오/시리즈명 후보)
+
+> ⚠️ 톤 보정 (2026-07-25): 팬덤이 사랑하는 건 'effortless한 우아함'이 아니라 **잔꾀 없는 진심 허슬 + 과정 공개 + 일에 대한 프라이드**다. 'quiet luxury/effortless' 계열 카피는 폐기. 비주얼은 스타일리시하되 무드는 Vogue가 아니라 **작업실(스튜디오)의 쿨함**.
+
+- *"I show my work — all of it."*
+- *"No shortcuts. Better tools."*
+- *"AI didn't make me lazy. It made me braver."*
+- ~~"AI is my quiet luxury." / "I don't work harder. I have staff."~~ (폐기 — 정체성과 상충)
 
 ---
 
