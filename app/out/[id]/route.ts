@@ -4,6 +4,7 @@ import { mergeWithFallbackData } from '@/utils/raw-data';
 import { parseBentoData } from '@/utils/data-parser';
 import { trackLinkView } from '@/utils/view-counter';
 import { getFixedSocialLink } from '@/utils/link-presentation';
+import { getProfileSettings } from '@/utils/profile-settings';
 import { kv } from '@vercel/kv';
 
 export const dynamic = 'force-dynamic';
@@ -25,8 +26,9 @@ export async function GET(
 
   const profile = parseBentoData(merged);
   const item = profile.items.find((entry) => entry.id === id);
+  const socialLink = getProfileSettings(merged).socialLinks.find((link) => link.id === id);
   const fixedSocialLink = getFixedSocialLink(id);
-  const href = item?.href ?? fixedSocialLink?.href;
+  const href = item?.href ?? socialLink?.href ?? fixedSocialLink?.href;
 
   if (!href) {
     return NextResponse.redirect(fallbackUrl);
